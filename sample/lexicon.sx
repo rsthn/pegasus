@@ -1,0 +1,156 @@
+/*
+**	lexicon.sx
+**
+**	General lexical grammar.
+**
+**	Copyright (c) 2014 RedStar Technologies, All rights reserved.
+**	Written by J. Palencia (ciachn@gmail.com)
+*/
+
+[lexicon]
+
+	token
+		:	identifier
+		|	-blanks
+		;
+
+	blanks
+		:	"[\r\n\t\s]"
+		;
+
+	identifier
+		:	identifier "[a-z;]"
+		|	"[a-z;]"
+		;
+
+[arrays]
+
+	keyword (identifier) : "hello", "world" ;
+
+[grammar]
+/*
+	S	{null}
+		:	Item	{ Record("\n") }
+		|	S Item	{ Record("\n") }
+		;
+
+	Item {null}
+		:	A		{ Record("S#1") }
+		|	B		{ Record("S#2") }
+		;
+
+	A	{null}
+		:	C identifier("k") identifier("b")	{ Record("A#1") }
+		|	C identifier("c") 					{ Record("A#2") }
+		|	C identifier("c") identifier("b")	{ Record("A#3") }
+		;
+
+	B	{null}
+		:	identifier("k")	{ Record("B#1") }
+		;
+
+	C	{null}
+		:	identifier("a") { Record("C#1") }
+		|					{ Record("C#2") }
+		;
+*/
+
+/*
+	S	{null}
+		:	A						{ Record("A B") }
+		;
+
+	A	{null}
+		:	A identifier("x") B		{ Record("A x B") }
+		|	identifier("a")			{ Record("a") }
+		;
+
+	B	{null}
+		:	B identifier("y") A		{ Record("B y A") }
+		|	identifier("b")			{ Record("b") }
+		;
+*/
+
+/*
+	s
+		:	s S identifier(";")
+		|	S identifier(";")
+		;
+
+	S	{null}
+		:	A C	C B					{ Record("A#1") }
+		|	A C identifier("z")		{ Record("A#2") }
+		|	identifier("x")			{ Record("A#3") }
+		;
+
+	A	{null}
+		:	identifier("x") B
+		|
+		;
+
+	B	{null}
+		:	identifier("b")
+		;
+
+	C	{null}
+		:	identifier("x")
+		;
+*/
+
+/*
+	s
+		:	s S identifier(";")
+		|	S identifier(";")
+		;
+
+	S {null}
+		:	A C	C B					{ Record("S#1") }
+		|	A C identifier("z")		{ Record("S#2") }
+		|	C C B					{ Record("S#3") }
+		|	C identifier("z")		{ Record("S#4") }
+		|	identifier("x")			{ Record("S#5") }
+		;
+
+	A {null}
+		:	identifier("x") B
+		;
+
+	B {null}
+		:	identifier("b")
+		;
+
+	C {null}
+		:	identifier("x")
+		;
+*/
+
+/*
+	S	:	X Y;
+
+	X	:	A identifier("b");
+	X	:	B identifier("c");
+
+	Y	:	A identifier("c");
+	Y	:	B identifier("b");
+
+	A	:	identifier("a");
+	B	:	identifier("a");
+*/
+
+S	{ null }
+	:	A identifier("a") B identifier("e")
+	|	A identifier("a") C identifier("f")
+	;
+
+A	{ null }
+	:	identifier("a")
+	|
+	;
+
+B	{ null }
+	:	identifier("x")
+	;
+
+C	{ null }
+	:	identifier("x")
+	;

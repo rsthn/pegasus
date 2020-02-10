@@ -1,0 +1,42 @@
+ITEMSET 1
+  > [2] *S (EOF) 
+  > [3] *A identifier:a B identifier:e 
+  > [3] *A identifier:a C identifier:f 
+  > [4] *identifier:a 
+  > [0] * [A#2]
+
+ITEMSET 2 [1]
+  > [5] S *(EOF) 
+
+ITEMSET 3 [1]
+  > [6] A *identifier:a B identifier:e 
+  > [6] A *identifier:a C identifier:f 
+
+ITEMSET 4 [1]
+  > [0] identifier:a * [A#1]
+
+ITEMSET 5 [2]
+  > [0] S (EOF) * [__start__#1]
+
+ITEMSET 6 [3]
+  > [7] A identifier:a *B identifier:e 
+  > [8] A identifier:a *C identifier:f 
+  > [9] *identifier:x 
+  > [9] *identifier:x 
+
+ITEMSET 7 [6]
+  > [10] A identifier:a B *identifier:e 
+
+ITEMSET 8 [6]
+  > [11] A identifier:a C *identifier:f 
+
+ITEMSET 9 [6]
+  > [0] identifier:x * [B#1]
+  > [0] identifier:x * [C#1]
+
+ITEMSET 10 [7]
+  > [0] A identifier:a B identifier:e * [S#1]
+
+ITEMSET 11 [8]
+  > [0] A identifier:a C identifier:f * [S#2]
+
