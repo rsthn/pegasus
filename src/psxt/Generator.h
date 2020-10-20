@@ -153,7 +153,7 @@ namespace psxt
 								{
 									for (Linkable<Pair<int, const char*>*> *z = left->top; z; z = z->next)
 									{
-										if (z->value->a == i)
+										if (z->value->key == i)
 										{
 											delete left->remove(z);
 											break;

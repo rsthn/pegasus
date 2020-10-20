@@ -24,7 +24,6 @@ namespace psxt
 
 	// Forward declarations.
 	ReachSet *ReachSet_buildFromItemSet (ItemSet *itemset, int offset, Context *context);
-	void ReachSet_destroy (ReachSet *set);
 
 	/**
 	**	Describes an Item Set.
@@ -90,8 +89,6 @@ namespace psxt
 
 			if (this->signature != nullptr)
 				this->signature->free();
-
-			ReachSet_destroy (this->reachSet);
 		}
 
 		/**
@@ -465,6 +462,7 @@ namespace psxt
 				hash += i->value->getHash();
 		}
 
+		// VIOLET
 		void xxx (Context *context, int section)
 		{
 			if (section == SECTION_GRAMMAR)

@@ -93,14 +93,14 @@ namespace psxt
 
 				for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(section)->top; i; i = i->next)
 				{
-					if (i->value->b->getReturnType() != nullptr || processed->get(i->value->b->getId()) != nullptr)
+					if (i->value->value->getReturnType() != nullptr || processed->get(i->value->value->getId()) != nullptr)
 						continue;
 
 					LString *type = nullptr;
 					bool hasTerminals = false;
 					int emptyRules = 0;
 
-					for (Linkable<ProductionRule*> *j = i->value->b->getRules()->top; j; j = j->next)
+					for (Linkable<ProductionRule*> *j = i->value->value->getRules()->top; j; j = j->next)
 					{
 						if (j->value->getElems()->count == 0)
 						{
@@ -115,7 +115,7 @@ namespace psxt
 							if (k->value->getType() == TTYPE_EOF)
 								continue;
 
-							if (k->value->getType() == TTYPE_IDENTIFIER && k->value->getValue()->equals(i->value->b->getName()))
+							if (k->value->getType() == TTYPE_IDENTIFIER && k->value->getValue()->equals(i->value->value->getName()))
 								continue;
 
 							if (k->value->getType() != TTYPE_IDENTIFIER)
@@ -133,10 +133,10 @@ namespace psxt
 
 						if (nonTermName == nullptr)
 						{
-							errmsg (nullptr, E_INFER_FAILED, i->value->b->getName()->c_str());
+							errmsg (nullptr, E_INFER_FAILED, i->value->value->getName()->c_str());
 							value = false;
 
-							processed->push (new Integer (i->value->b->getId()));
+							processed->push (new Integer (i->value->value->getId()));
 							break;
 						}
 
@@ -151,8 +151,8 @@ namespace psxt
 						{
 							if (processed->get(nt->getId()) != nullptr)
 							{
-								errmsg (nullptr, E_INFER_FAILED, i->value->b->getName()->c_str());
-								processed->push (new Integer (i->value->b->getId()));
+								errmsg (nullptr, E_INFER_FAILED, i->value->value->getName()->c_str());
+								processed->push (new Integer (i->value->value->getId()));
 							}
 							else
 								retry = true;
@@ -164,22 +164,22 @@ namespace psxt
 
 						if (!type->equals (nt->getReturnType()))
 						{
-							errmsg ((Token *)(type = nullptr), E_INCONSISTENT_TYPE, i->value->b->getName()->c_str());
+							errmsg ((Token *)(type = nullptr), E_INCONSISTENT_TYPE, i->value->value->getName()->c_str());
 							value = false;
 
-							processed->push (new Integer (i->value->b->getId()));
+							processed->push (new Integer (i->value->value->getId()));
 							break;
 						}
 					}
 
-					if (type == nullptr && (hasTerminals || i->value->b->getRules()->count == emptyRules))
+					if (type == nullptr && (hasTerminals || i->value->value->getRules()->count == emptyRules))
 					{
-						i->value->b->setReturnType (LString::alloc("void *"));
+						i->value->value->setReturnType (LString::alloc("void *"));
 					}
 					else
 					{
 						if (type != nullptr)
-							i->value->b->setReturnType (LString::alloc(type));
+							i->value->value->setReturnType (LString::alloc(type));
 					}
 				}
 			}
@@ -518,7 +518,7 @@ namespace psxt
 			pair = context->getNonTerminalPairs(SECTION_LEXICON)->top;
 			if (pair != nullptr && !(finished & 1))
 			{
-				for (Linkable<ProductionRule*> *i = pair->value->b->getRules()->top; i; i = i->next)
+				for (Linkable<ProductionRule*> *i = pair->value->value->getRules()->top; i; i = i->next)
 				{
 					if (i->value->getVisibility() != 0) continue;
 
@@ -541,10 +541,10 @@ namespace psxt
 
 					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
 					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, "__tokens"));
-					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->a)->c_str()));
+					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->key)->c_str()));
 
 					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
-					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->a)->c_str()));
+					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->key)->c_str()));
 
 				nonterm->addRule (production = new ProductionRule (nonterm->nextId(), nonterm));
 				production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, "__tokens"));
@@ -563,7 +563,7 @@ namespace psxt
 				context->addNonTerminal (SECTION_GRAMMAR, nonterm);
 
 				nonterm->addRule (production = new ProductionRule (nonterm->nextId(), nonterm));
-				production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->a)->c_str()));
+				production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->key)->c_str()));
 				production->addElem (scanner->buildToken (TTYPE_EOF, ""));
 				production->setAction (LString::alloc("$0"));
 

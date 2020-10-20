@@ -64,6 +64,7 @@ namespace psxt
 		**	Map with the global reach-sets.
 		*/
 		LList<Pair<LString*, ReachSet*>*> *reachSets;
+		LList<Pair<LString*, ReachSet*>*> *reachSets_deletable;
 
 		public:
 
@@ -73,6 +74,7 @@ namespace psxt
 		Context ()
 		{
 			reachSets = new LList<Pair<LString*, ReachSet*>*> ();
+			reachSets_deletable = new LList<Pair<LString*, ReachSet*>*> ();
 
 			for (int i = 0; i < SECTION_COUNT; i++)
 			{
@@ -92,7 +94,7 @@ namespace psxt
 			{
 				for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->top; i; i = i->next)
 				{
-					i->value->a->free();
+					i->value->key->free();
 					delete i->value;
 				}
 
@@ -105,12 +107,21 @@ namespace psxt
 				delete sections[j]->reset();
 			}
 
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->top; i; i = i->next)
+			/* ** */
+			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets_deletable->top; i; i = i->next)
 			{
-				i->value->a->free();
+				i->value->key->free();
 				delete i->value;
 			}
 
+			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->top; i; i = i->next)
+			{
+				i->value->key->free();
+				i->value->value = nullptr;
+				delete i->value;
+			}
+
+			delete reachSets_deletable->reset();
 			delete reachSets->reset();
 		}
 
@@ -136,7 +147,7 @@ namespace psxt
 			List<NonTerminal*> *list = new List<NonTerminal*> ();
 
 			for (Linkable<Pair<LString*, NonTerminal*>*> *node = sections[section]->top; node != nullptr; node = node->next)
-				list->push (node->value->b);
+				list->push (node->value->value);
 
 			return list;
 		}
@@ -166,14 +177,17 @@ namespace psxt
 		ReachSet *getReachSet (LString *name)
 		{
 			Pair<LString*, ReachSet*> *value = this->reachSets->get (name, name->getHash());
-			return value ? value->b : nullptr;
+			return value ? value->value : nullptr;
 		}
 
 		/**
 		**	Adds an exported production rule to the section's export list.
 		*/
-		ReachSet *addReachSet (LString *name, ReachSet *set)
+		ReachSet *addReachSet (LString *name, ReachSet *set, bool is_deletable)
 		{
+			if (is_deletable)
+				this->reachSets_deletable->push (new Pair<LString*, ReachSet*> (name, set));
+
 			this->reachSets->push (new Pair<LString*, ReachSet*> (name, set));
 			return set;
 		}
@@ -229,7 +243,7 @@ namespace psxt
 				return nullptr;
 
 			Pair<LString*, NonTerminal*> *pair = sections[section]->get (name, name->getHash());
-			return pair == nullptr ? nullptr : pair->b;
+			return pair == nullptr ? nullptr : pair->value;
 		}
 
 		/**
@@ -242,10 +256,10 @@ namespace psxt
 
 			Linkable<Pair<LString*, NonTerminal*>*> *i = sections[section]->top;
 
-			while (i && i->value->b->getId() != id)
+			while (i && i->value->value->getId() != id)
 				i = i->next;
 
-			return i == nullptr ? nullptr : i->value->b;
+			return i == nullptr ? nullptr : i->value->value;
 		}
 	};
 };

@@ -18,7 +18,7 @@
 
 #define __YEAR__ 2018
 
-#define ENABLE_GENERATOR 1
+#define ENABLE_GENERATOR 0
 
 #include <assert.h>
 #include <time.h>
@@ -47,6 +47,8 @@ using psxt::LString;
 
 int main (int argc, char *argv[])
 {
+	printf("STARTING_WITH=%d\n", asr::memblocks);
+
 	List<String*> *sources = new List<String*> ();
 	String *str, *fmt = new String ("cpp"), *name = new String (""), *outdir = new String ("");
 	bool dump = false, dumpi = false;
@@ -151,7 +153,7 @@ int main (int argc, char *argv[])
 	{
 		lsnum = itemsets->count;
 
-		if (dumpi)
+		/*if (dumpi)
 		{
 			os = fopen ("lexicon-itemsets.txt", "wb");
 
@@ -159,7 +161,7 @@ int main (int argc, char *argv[])
 				i->value->dump (os);
 
 			fclose (os);
-		}
+		}*/
 
 		#if ENABLE_GENERATOR==1
 		printf("[36mAbout to start FsmStateBuilder for the lexicon.[0m\n");
@@ -182,11 +184,13 @@ int main (int argc, char *argv[])
 			fclose (os);
 			delete str;
 
-		delete states->clear();
+		delete states;
 		#endif
-		delete itemsets->clear();
-	}
+		delete itemsets;
 
+		//violet
+	}
+#if 0
 	/* ****************************** */
 	itemsets = psxt::ItemSetBuilder::build (context, SECTION_GRAMMAR, initialSymbol);
 	if (itemsets != nullptr)
@@ -229,23 +233,32 @@ int main (int argc, char *argv[])
 		delete itemsets->clear();
 	}
 
+#endif
+
 	/* ~ */
 	initialSymbol->free();
 
-	delete sources->clear();
+	printf("DELETE sources\n");
+	delete sources;
+	printf("DELETE context\n");
 	delete context;
+	printf("DELETE gen\n");
 	delete gen;
 
+	printf("DELETE name\n");
 	delete name;
+	printf("DELETE outdir\n");
 	delete outdir;
+	printf("DELETE fmt\n");
 	delete fmt;
 
 	LString::finish();
 
-	printf ("psxt: Generated %u scanner states, and %u parser states.\n", lsnum, psnum);
+	//printf ("psxt: Generated %u scanner states, and %u parser states.\n", lsnum, psnum);
 	printf ("psxt: Finished.\n");
 
 	if (asr::memblocks) printf ("Warning: System might be leaking (left %u blocks wandering).\n", asr::memblocks);
+	printf("FINISHED WITH = %u", asr::memblocks);
 
 	printf ("\n");
 	return 0;

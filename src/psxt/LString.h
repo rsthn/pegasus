@@ -70,7 +70,7 @@ int count0=0, count1=0, count2=0, count3=0;
 		/**
 		**	Internal destructor.
 		*/
-		virtual ~LString()
+		private: virtual ~LString()
 		{
 			if (this->string != nullptr)
 				delete this->string;
@@ -81,7 +81,7 @@ int count0=0, count1=0, count2=0, count3=0;
 		/**
 		**	Searches the pool for a string match.
 		*/
-		static LString *get (const char *value)
+		protected: static LString *get (const char *value)
 		{
 			return pool != nullptr ? pool->get(value, String::getHash(value)) : nullptr;
 		}
@@ -118,6 +118,9 @@ int count0=0, count1=0, count2=0, count3=0;
 		*/
 		int length;
 
+		/**
+		**	Removes all strings from the pool.
+		*/
 		static void finish ()
 		{
 			if (pool != nullptr)

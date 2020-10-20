@@ -18,24 +18,29 @@
 
 namespace psxt
 {
+	class ReachSetNode;
+	class ReachElement;
+	class ReachPath;
+	class ReachSet;
+
 	/**
 	**	Base abstract class for nodes related to a reach-sets.
 	*/
-	class ReachSetNode : public traits::no_delete
+	class ReachSetNode
 	{
 		protected:
+
+		/**
+		**	Number of references.
+		*/
+		public: int refCount;
+
+		public:
 
 		/**
 		**	Type of the node. One of the constants on this class.
 		*/
 		int nodeType;
-
-		/**
-		**	Number of references.
-		*/
-		int refCount;
-
-		public:
 
 		/**
 		**	Types of follow set nodes.
@@ -51,21 +56,23 @@ namespace psxt
 		{
 			this->nodeType = nodeType;
 			this->refCount = 0;
+count0++;
 		}
 
 		/**
 		**	Destructs the follow set node.
 		*/
-		virtual ~ReachSetNode()
+		protected: virtual ~ReachSetNode()
 		{
+count0--;
 		}
 
 		/**
 		**	Deletes the object if there are no more references.
 		*/
-		void destroy()
+		public: void destroy()
 		{
-			if (--this->refCount <= 0)
+			if (--this->refCount == 0)
 				delete this;
 		}
 
@@ -91,7 +98,7 @@ namespace psxt
 		*/
 		virtual void dump (FILE *os) = 0;
 	};
-
+int xxx=0;
 	/**
 	**	Describes a single element (token) that can be reached through a path.
 	*/
@@ -100,7 +107,7 @@ namespace psxt
 		protected:
 
 		/**
-		**	Value of the element. If nullptr it is treated as an exit node.
+		**	Value of the element. If nullptr, it is treated as an exit node.
 		*/
 		Token *value;
 
@@ -112,12 +119,20 @@ namespace psxt
 		ReachElement (Token *value) : ReachSetNode(ReachSetNode::REACH_ELEMENT)
 		{
 			this->value = value;
+printf("%*s+ReachElement %x => %d\n", xxx*2, "", this, count1+1);
+count1++;
+		}
+
+		protected: virtual ~ReachElement()
+		{
+printf("%*s~ReachElement %x => %d\n", xxx*2, "", this, count1-1);
+count1--;
 		}
 
 		/**
 		**	Returns a boolean indicating if the element is an exit-node.
 		*/
-		bool isExit ()
+		public: bool isExit()
 		{
 			return this->value == nullptr;
 		}
@@ -125,7 +140,7 @@ namespace psxt
 		/**
 		**	Returns the value of the element.
 		*/
-		Token *getValue ()
+		Token *getValue()
 		{
 			return this->value;
 		}
@@ -161,28 +176,25 @@ namespace psxt
 		/**
 		**	Constructs an empty reach path.
 		*/
-		ReachPath () : ReachSetNode(ReachSetNode::REACH_PATH)
+		ReachPath() : ReachSetNode(ReachSetNode::REACH_PATH)
 		{
 			this->list = new List<ReachSetNode*> ();
+printf("%*s+ReachPath %x => %d\n", xxx*2, "", this, count2+1);
+count2++;
 		}
 
 		/**
 		**	Destructs the reach path.
 		*/
-		virtual ~ReachPath ()
-		{
-			for (auto i = this->list->top; i; i = i->next)
-				i->value->destroy();
-
-			delete this->list->reset();
-		}
+		protected: virtual ~ReachPath();
 
 		/**
 		**	Adds an item to the path.
 		*/
-		void addItem (ReachSetNode *elem)
+		public: void addItem (ReachSetNode *elem)
 		{
 			this->list->push (elem->getReference());
+printf("%*sReachPath[%x]: ADD %x\n", xxx*2, "", this, elem);
 		}
 
 		/**
@@ -231,23 +243,24 @@ namespace psxt
 
 			this->nonterm = nullptr;
 			this->itemset = nullptr;
+printf("%*s+ReachSet %x => %d\n", xxx*2, "", this, count3+1);
+count3++;
 		}
 
 		/**
 		**	Destructs the reach set.
 		*/
-		virtual ~ReachSet()
+		protected: virtual ~ReachSet()
 		{
-			for (auto i = this->list->top; i; i = i->next)
-				i->value->destroy();
-
-			delete this->list->reset();
+printf("%*s~ReachSet %x => %d\n", xxx*2, "", this, count3-1);
+			delete this->list;
+count3--;
 		}
 
 		/**
 		**	Returns the non-terminal used to generate the set.
 		*/
-		NonTerminal *getNonTerminal ()
+		public: NonTerminal *getNonTerminal ()
 		{
 			return this->nonterm;
 		}
@@ -266,6 +279,7 @@ namespace psxt
 		void addPath (ReachPath *path)
 		{
 			this->list->push ((ReachPath *)path->getReference());
+printf("%*sReachSet[%x]: ADD %x\n", xxx*2, "", this, path);
 		}
 
 		/**
@@ -278,20 +292,21 @@ namespace psxt
 		{
 			ReachSet *set = context != nullptr ? context->getReachSet (nonterm->getName()) : nullptr;
 			if (set != nullptr) return set;
-
-			set = new ReachSet ();
+xxx++;
+			set = new ReachSet();
 			set->nonterm = nonterm;
 
 			if (context != nullptr)
-				context->addReachSet (nonterm->getName(), set);
+				context->addReachSet (nonterm->getName(), set, false);
 
 			for (Linkable<ProductionRule*> *i = nonterm->getRules()->top; i; i = i->next)
 			{
 				set->addPath (ReachPath::buildFromRule (i->value->getElems()->top, context));
 			}
-printf("---------\nReach(%s) [NTERM]:\n", nonterm->getName()->c_str());
-set->dump(stdout);
-printf("\n\n");
+//printf("---------\nReach(%s) [NTERM]:\n", nonterm->getName()->c_str());
+//set->dump(stdout);
+//printf("\n\n");
+xxx--;
 			return set;
 		}
 
@@ -305,12 +320,12 @@ printf("\n\n");
 		{
 			ReachSet *set = context != nullptr ? context->getReachSet (itemset->getSignature()) : nullptr;
 			if (set != nullptr) return set;
-
+xxx++;
 			set = new ReachSet ();
 			set->itemset = itemset;
 
 			if (context != nullptr)
-				context->addReachSet (itemset->getSignature(), set);
+				context->addReachSet (itemset->getSignature(), set, true);
 
 			for (Linkable<Item*> *i = itemset->getItems()->top; i; i = i->next)
 			{
@@ -327,6 +342,7 @@ printf("\n\n");
 printf("---------\nReach(%s) [SET]:\n", itemset->getSignature()->c_str());
 set->dump(stdout);
 printf("\n\n");
+xxx--;
 			return set;
 		}
 
@@ -356,6 +372,7 @@ printf("\n\n");
 	*/
 	ReachPath *ReachPath::buildFromRule (Linkable<Token*> *elem, Context *context)
 	{
+xxx++;
 		ReachPath *path = new ReachPath ();
 
 		for (Linkable<Token*> *i = elem; i; i = i->next)
@@ -365,7 +382,7 @@ printf("\n\n");
 			else
 				path->addItem (new ReachElement (i->value));
 		}
-
+xxx--;
 		return path;
 	}
 
@@ -395,14 +412,66 @@ printf("\n\n");
 	*/
 	ReachSet *ReachSet_buildFromItemSet (ItemSet *itemset, int offset, Context *context)
 	{
-		return (ReachSet *)ReachSet::buildFromItemSet (itemset, offset, context)->getReference();
-	}
-
-	/**
-	**	Function wrapper to prevent class forward reference errors.
-	*/
-	void ReachSet_destroy (ReachSet *set)
-	{
-		if (set != nullptr) set->destroy();
+		xxx++;
+		auto x = (ReachSet *)ReachSet::buildFromItemSet (itemset, offset, context)->getReference();
+		xxx--;
+		return x;
 	}
 };
+
+namespace asr {
+namespace utils {
+
+	template<>
+	struct Destroyer<psxt::ReachSetNode*> {
+		static inline void destroy (psxt::ReachSetNode*&item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); item = nullptr; }
+		static inline void destroyb (psxt::ReachSetNode*item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); }
+	};
+
+	template<>
+	struct Destroyer<psxt::ReachElement*> {
+		static inline void destroy (psxt::ReachElement*&item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); item = nullptr; }
+		static inline void destroyb (psxt::ReachElement*item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); }
+	};
+
+	template<>
+	struct Destroyer<psxt::ReachPath*> {
+		static inline void destroy (psxt::ReachPath*&item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); item = nullptr; }
+		static inline void destroyb (psxt::ReachPath*item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); }
+	};
+
+	template<>
+	struct Destroyer<psxt::ReachSet*> {
+		static inline void destroy (psxt::ReachSet*&item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); item = nullptr; }
+		static inline void destroyb (psxt::ReachSet*item, bool _delete=true) { if (item != nullptr && _delete) item->destroy(); }
+	};
+
+} }
+
+namespace psxt
+{
+	using asr::utils::Destroyer;
+
+	/**
+	**	Destructs the reach path.
+	*/
+	ReachPath::~ReachPath()
+	{
+printf("%*s~ReachPath %x => %d\n", xxx*2, "", this, count2-1);
+		for (Linkable<ReachSetNode*> *i = this->list->top; i; i = i->next)
+		{
+printf("#");
+			/*if (i->value->nodeType == ReachSetNode::REACH_PATH)
+				Destroyer<ReachPath*>::destroy((ReachPath*&)i->value);
+			else if (i->value->nodeType == ReachSetNode::REACH_SET)
+				Destroyer<ReachSet*>::destroy((ReachSet*&)i->value);
+			else if (i->value->nodeType == ReachSetNode::REACH_ELEMENT)
+				Destroyer<ReachElement*>::destroy((ReachElement*&)i->value);*/
+
+			//i->value = nullptr;
+		}
+
+		delete this->list->clear();
+count2--;
+	}
+}

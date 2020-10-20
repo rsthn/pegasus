@@ -88,12 +88,12 @@ namespace gen
 
 			for (Linkable<Pair<int, const char*>*> *i = left->top; i; i = i->next)
 			{
-				if (isConstPtr(i->value->b))
+				if (isConstPtr(i->value->value))
 					continue;
 
 				writef ("%s if (argv[bp-%u]) delete (%s)argv[bp-%u];", nl, 
-					maxMarkers - i->value->a,
-					i->value->b, maxMarkers - i->value->a);
+					maxMarkers - i->value->key,
+					i->value->value, maxMarkers - i->value->key);
 			}
 
 			delete left->clear();
@@ -284,13 +284,13 @@ namespace gen
 
 			for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(SECTION_ARRAYS)->top; i; i = i->next)
 			{
-				int id = getExportId (SECTION_LEXICON, i->value->b->getReturnType());
-				int id2 = getExportId (SECTION_LEXICON, i->value->a);
+				int id = getExportId (SECTION_LEXICON, i->value->value->getReturnType());
+				int id2 = getExportId (SECTION_LEXICON, i->value->key);
 
 				writef ("%s if (token->getType() == %u)\n", nl3, id);
 				writef ("%s {", nl3);
 
-				for (Linkable<Token*> *j = i->value->b->getRules()->top->value->getElems()->top; j; j = j->next)
+				for (Linkable<Token*> *j = i->value->value->getRules()->top->value->getElems()->top; j; j = j->next)
 				{
 					writef ("%s if (token->equals(\"%s\")) { return token->setType(%u); }", nl4, j->value->getCstr(), id2);
 				}

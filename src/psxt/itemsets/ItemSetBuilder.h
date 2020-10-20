@@ -59,7 +59,7 @@ namespace psxt
 		{
 			for (Linkable<Pair<LString*, NonTerminal*>*> *n = context->getNonTerminalPairs(section)->top; n; n = n->next)
 			{
-				for (Linkable<ProductionRule*> *r = n->value->b->getRules()->top; r; r = r->next)
+				for (Linkable<ProductionRule*> *r = n->value->value->getRules()->top; r; r = r->next)
 				{
 					for (Linkable<Token*> *t = r->value->getElems()->top; t; t = t->next)
 					{
@@ -102,7 +102,7 @@ namespace psxt
 			while (queue->count)
 			{
 				itemset = queue->shift();
-
+#if 0
 				for (Linkable<Item*> *i = itemset->getItems()->top; i; i = i->next)
 				{
 					if (i->value->getTransition() != nullptr || i->value->getElem() == nullptr)
@@ -141,12 +141,12 @@ namespace psxt
 
 					continue;
 				}
-
+#endif
 				itemsets->push (itemset);
 				itemset->setId (nextItemId++);
 
 				queue->append (tqueue);
-				tqueue->reset ();
+				tqueue->reset();
 			}
 
 			for (auto i = itemsets->top; i; i = i->next)
