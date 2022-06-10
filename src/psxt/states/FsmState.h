@@ -106,7 +106,7 @@ namespace psxt
 
 				// TODO fix
 
-				/*for (Linkable<Pair<Token*, ItemSet*>*> *i = this->item->getFollow()->top; i; i = i->next)
+				/*for (Linkable<Pair<Token*, ItemSet*>*> *i = this->item->getFollow()->head(); i; i = i->next())
 				{
 					if (!this->follow->kcontains (i->value->a))
 						this->follow->push (i->value->a);
@@ -311,7 +311,7 @@ namespace psxt
 
 			if (reduce->follow != nullptr)
 			{
-				for (Linkable<Token*> *i = reduce->follow->top; i; i = i->next)
+				for (Linkable<Token*> *i = reduce->follow->head(); i; i = i->next())
 				{
 					fprintf (output, "\n    > ON %s%s%s ", 
 						i->value->getType() == TTYPE_EOF ? "(EOF)" : i->value->getCstr(), 
@@ -331,7 +331,7 @@ namespace psxt
 
 			if (this->reductions != nullptr)
 			{
-				for (Linkable<psxt::FsmState::ReduceAction*> *i = this->reductions->top; i; i = i->next)
+				for (Linkable<psxt::FsmState::ReduceAction*> *i = this->reductions->head(); i; i = i->next())
 				{
 					dump (output, i->value);
 				}
@@ -339,19 +339,19 @@ namespace psxt
 
 			if (this->gotos != nullptr)
 			{
-				for (Linkable<psxt::FsmState::GotoAction*> *i = this->gotos->top; i; i = i->next)
+				for (Linkable<psxt::FsmState::GotoAction*> *i = this->gotos->head(); i; i = i->next())
 					fprintf (output, "\n  > GOTO %u ON %s", i->value->nextState->getId(), i->value->nonterm->getName()->c_str());
 			}
 
 			if (this->jumps != nullptr)
 			{
-				for (Linkable<psxt::FsmState::JumpAction*> *i = this->jumps->top; i; i = i->next)
+				for (Linkable<psxt::FsmState::JumpAction*> *i = this->jumps->head(); i; i = i->next())
 					fprintf (output, "\n  > JUMP %u ON '%s'", i->value->nextState->getId(), i->value->value->getCstr());
 			}
 
 			if (this->shifts != nullptr)
 			{
-				for (Linkable<psxt::FsmState::ShiftAction*> *i = this->shifts->top; i; i = i->next)
+				for (Linkable<psxt::FsmState::ShiftAction*> *i = this->shifts->head(); i; i = i->next())
 				{
 					if (i->value->value->getType() == TTYPE_EOF)
 						fprintf (output, "\n  > SHIFT (EOF) -> %u", i->value->nextState->getId());

@@ -57,11 +57,11 @@ namespace psxt
 		*/
 		private: static void bindTokenNTRefs (Context *context, int section)
 		{
-			for (Linkable<Pair<LString*, NonTerminal*>*> *n = context->getNonTerminalPairs(section)->top; n; n = n->next)
+			for (Linkable<Pair<LString*, NonTerminal*>*> *n = context->getNonTerminalPairs(section)->head(); n; n = n->next())
 			{
-				for (Linkable<ProductionRule*> *r = n->value->value->getRules()->top; r; r = r->next)
+				for (Linkable<ProductionRule*> *r = n->value->value->getRules()->head(); r; r = r->next())
 				{
-					for (Linkable<Token*> *t = r->value->getElems()->top; t; t = t->next)
+					for (Linkable<Token*> *t = r->value->getElems()->head(); t; t = t->next())
 					{
 						if (t->value->getType() != TTYPE_IDENTIFIER)
 							continue;
@@ -99,11 +99,11 @@ namespace psxt
 
 			queue->push (itemset);
 
-			while (queue->count)
+			while (queue->length())
 			{
 				itemset = queue->shift();
 #if 0
-				for (Linkable<Item*> *i = itemset->getItems()->top; i; i = i->next)
+				for (Linkable<Item*> *i = itemset->getItems()->head(); i; i = i->next())
 				{
 					if (i->value->getTransition() != nullptr || i->value->getElem() == nullptr)
 						continue;
@@ -114,7 +114,7 @@ namespace psxt
 					i->value->setTransition (nextItemset);
 					nextItemset->addItem ((new Item (i->value))->moveNext());
 
-					for (Linkable<Item*> *j = i->next; j; j = j->next)
+					for (Linkable<Item*> *j = i->next(); j; j = j->next())
 					{
 						if (j->value->getTransition() != nullptr || j->value->getElem() == nullptr)
 							continue;
@@ -133,8 +133,8 @@ namespace psxt
 				ItemSet *temp = itemsets->get (itemset);
 				if (temp != nullptr)
 				{
-					itemset->getParents()->top->value->rewire (itemset, temp);
-					temp->addParent (itemset->getParents()->top->value);
+					itemset->getParents()->head()->value->rewire (itemset, temp);
+					temp->addParent (itemset->getParents()->head()->value);
 
 					tqueue->clear ();
 					delete itemset;
@@ -149,10 +149,11 @@ namespace psxt
 				tqueue->reset();
 			}
 
-			for (auto i = itemsets->top; i; i = i->next)
+			for (auto i = itemsets->head(); i; i = i->next())
 				i->value->xxx(context, section);
 
-printf("LList: Items=%u, Buckets=%u, MaxFill=%u\n", itemsets->count, itemsets->numBuckets, itemsets->maxFill);
+//TODO used to work this thing
+//printf("LList: Items=%u, Buckets=%u, MaxFill=%u\n", itemsets->length(), itemsets->numBuckets, itemsets->maxFill);
 			delete queue->reset();
 			delete tqueue->reset();
 

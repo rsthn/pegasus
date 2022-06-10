@@ -365,11 +365,11 @@ namespace $0
 				parseToken();
 			}
 
-			Linkable<Token*> *im = this->queue->top;
+			Linkable<Token*> *im = this->queue\-\>head();
 
 			while (i-- && im != nullptr)
 			{
-				im = im->next;
+				im = im\-\>next();
 			}
 
 			return im ? im->value : nullptr;

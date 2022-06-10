@@ -162,10 +162,10 @@ namespace psxt
 		{
 			if (item == nullptr) return false;
 
-			if (item->list->count != this->list->count)
+			if (item->list->length() != this->list->length())
 				return false;
 
-			for (Linkable<Item*> *i = this->list->top; i; i = i->next)
+			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
 				Item *k = item->getItems()->get (i->value);
 				if (k == nullptr) return false;
@@ -231,7 +231,7 @@ namespace psxt
 
 			void addItems (List<Item*> *list)
 			{
-				for (Linkable<Item*> *i = list->top; i; i = i->next)
+				for (Linkable<Item*> *i = list->head(); i; i = i->next())
 				{
 					if (!items->contains (i->value))
 						items->push (i->value);
@@ -254,9 +254,9 @@ namespace psxt
 			List<List<Group*>*> *stack = new List<List<Group*>*> ();
 			List<Group*> *list = new List<Group*> ();
 
-			for (Linkable<Item*> *i = this->list->top; i; i = ni)
+			for (Linkable<Item*> *i = this->list->head(); i; i = ni)
 			{
-				ni = i->next;
+				ni = i->next();
 
 				if (i->value->getElem() == nullptr)
 					continue;
@@ -273,15 +273,15 @@ namespace psxt
 			CharSet *temp = new CharSet();
 			CharSet *accum = new CharSet();
 
-			while (stack->bottom->value->count > 1)
+			while (stack->tail()->value->length() > 1)
 			{
 				List<Group*> *output = new List<Group*> ();
 
-				list = stack->bottom->value;
+				list = stack->tail()->value;
 
-				for (Linkable<Group*> *i = list->top; i; i = i->next)
+				for (Linkable<Group*> *i = list->head(); i; i = i->next())
 				{
-					for (Linkable<Group*> *j = i->next; j; j = j->next)
+					for (Linkable<Group*> *j = i->next(); j; j = j->next())
 					{
 						if (temp->set(i->value->charset)->_and(j->value->charset)->isEmpty())
 							continue;
@@ -307,11 +307,11 @@ namespace psxt
 			{
 				temp->clear();
 
-				for (Linkable<Group*> *i = list->top; i; i = i->next)
+				for (Linkable<Group*> *i = list->head(); i; i = i->next())
 				{
 					if (i->value->charset->_and (accum)->isEmpty())
 					{
-						if (!stack->count)
+						if (!stack->length())
 							i->value->items->clear();
 
 						continue;
@@ -319,7 +319,7 @@ namespace psxt
 
 					LString *p = i->value->charset->toString();
 
-					for (Linkable<Item*> *j = i->value->items->top; j; j = j->next)
+					for (Linkable<Item*> *j = i->value->items->head(); j; j = j->next())
 					{
 						Item *w = new Item (j->value);
 						w->overrideElem (p);
@@ -327,7 +327,7 @@ namespace psxt
 						this->list->push (w);
 					}
 
-					if (!stack->count)
+					if (!stack->length())
 						i->value->items->clear();
 
 					p->free();
@@ -356,7 +356,7 @@ namespace psxt
 
 			Item *item = nullptr;
 
-			for (Linkable<ProductionRule*> *i = nonterm->getRules()->top; i; i = i->next)
+			for (Linkable<ProductionRule*> *i = nonterm->getRules()->head(); i; i = i->next())
 			{
 				if (item == nullptr)
 					item = new Item (i->value);
@@ -396,15 +396,15 @@ namespace psxt
 
 			List<Item*> *list = new List<Item*> ();
 
-			if (this->list->top)
-				list->push (this->list->top->value);
+			if (this->list->head())
+				list->push (this->list->head()->value);
 
-			for (Linkable<Item*> *i = this->list->top ? this->list->top->next : nullptr; i; i = i->next)
+			for (Linkable<Item*> *i = this->list->head() ? this->list->head()->next() : nullptr; i; i = i->next())
 			{
 				uint32_t h = i->value->getHash();
 				bool added = false;
 
-				for (Linkable<Item*> *j = list->top; j; j = j->next)
+				for (Linkable<Item*> *j = list->head(); j; j = j->next())
 				{
 					if (h < j->value->getHash())
 					{
@@ -420,9 +420,9 @@ namespace psxt
 			char *buff = buffer;
 			*buff = '\0';
 
-			for (Linkable<Item*> *i = list->top; i; i = i->next)
+			for (Linkable<Item*> *i = list->head(); i; i = i->next())
 			{
-				sprintf(buff, "%s%x", i->prev != nullptr ? ":" : "", i->value->getHash());
+				sprintf(buff, "%s%x", i->prev() != nullptr ? ":" : "", i->value->getHash());
 				buff += strlen (buff);
 			}
 
@@ -442,7 +442,7 @@ namespace psxt
 		{
 			buildSignature();
 
-			for (Linkable<Item*> *i = this->list->top; i; i = i->next)
+			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
 				if (i->value->getElem() == nullptr)
 					continue;
@@ -458,7 +458,7 @@ namespace psxt
 
 			hash = 0;
 
-			for (Linkable<Item*> *i = this->list->top; i; i = i->next)
+			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 				hash += i->value->getHash();
 		}
 
@@ -480,7 +480,7 @@ namespace psxt
 		*/
 		void rewire (ItemSet *oldv, ItemSet *newv)
 		{
-			for (Linkable<Item*> *i = this->list->top; i; i = i->next)
+			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
 				i->value->rewire (oldv, newv);
 			}
@@ -501,10 +501,10 @@ namespace psxt
 		{
 			fprintf (output, "ITEMSET %u", id);
 
-			for (Linkable<ItemSet*> *i = this->parents->top; i; i = i->next)
+			for (Linkable<ItemSet*> *i = this->parents->head(); i; i = i->next())
 				fprintf (output, " [%u]", i->value->getId());
 
-			for (Linkable<Item*> *i = this->list->top; i; i = i->next)
+			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
 				fprintf (output, "\n  > [%u] ", i->value->getTransition() ? i->value->getTransition()->getId() : 0);
 				i->value->dump (output, &__getId);

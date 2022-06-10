@@ -101,7 +101,7 @@ namespace psxt
 			if (this->action != nullptr)
 				this->action->free();
 
-			while (this->elems->count)
+			while (this->elems->length())
 			{
 				delete this->elems->pop();
 			}
@@ -117,19 +117,19 @@ namespace psxt
 			LList<Token*> *listA = item->elems;
 			LList<Token*> *listB = elems;
 
-			if (listA->count != listB->count)
+			if (listA->length() != listB->length())
 				return false;
 
-			Linkable<Token*> *a = listA->top;
-			Linkable<Token*> *b = listB->top;
+			Linkable<Token*> *a = listA->head();
+			Linkable<Token*> *b = listB->head();
 
 			while (a != nullptr && b != nullptr)
 			{
 				if (!a->value->equals (b->value))
 					break;
 
-				a = a->next;
-				b = b->next;
+				a = a->next();
+				b = b->next();
 			}
 
 			return a == nullptr && b == nullptr ? true : false;
@@ -200,7 +200,7 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the length (number of elements) of the rule. This value is not equal to "getElems()->count" because this only
+		**	Returns the length (number of elements) of the rule. This value is not equal to "getElems()->length()" because this only
 		**	counts non N-Value and non-EOF tokens.
 		*/
 		int getLength ()
@@ -250,7 +250,7 @@ namespace psxt
 		{
 			if (elem->getType() == TTYPE_NVALUE)
 			{
-				this->elems->bottom->value->setNValue (elem);
+				this->elems->tail()->value->setNValue (elem);
 				return;
 			}
 
@@ -263,10 +263,10 @@ namespace psxt
 		*/
 		Token *getElem (int index)
 		{
-			Linkable<Token*> *elem = this->elems->top;
+			Linkable<Token*> *elem = this->elems->head();
 
 			while (elem && index--)
-				elem = elem->next;
+				elem = elem->next();
 
 			return elem ? elem->value : nullptr;
 		}

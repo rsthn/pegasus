@@ -91,7 +91,7 @@ namespace psxt
 			{
 				retry = false;
 
-				for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(section)->top; i; i = i->next)
+				for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(section)->head(); i; i = i->next())
 				{
 					if (i->value->value->getReturnType() != nullptr || processed->get(i->value->value->getId()) != nullptr)
 						continue;
@@ -100,9 +100,9 @@ namespace psxt
 					bool hasTerminals = false;
 					int emptyRules = 0;
 
-					for (Linkable<ProductionRule*> *j = i->value->value->getRules()->top; j; j = j->next)
+					for (Linkable<ProductionRule*> *j = i->value->value->getRules()->head(); j; j = j->next())
 					{
-						if (j->value->getElems()->count == 0)
+						if (j->value->getElems()->length() == 0)
 						{
 							emptyRules++;
 							continue;
@@ -110,7 +110,7 @@ namespace psxt
 
 						LString *nonTermName = nullptr;
 
-						for (Linkable<Token*> *k = j->value->getElems()->top; k; k = k->next)
+						for (Linkable<Token*> *k = j->value->getElems()->head(); k; k = k->next())
 						{
 							if (k->value->getType() == TTYPE_EOF)
 								continue;
@@ -172,7 +172,7 @@ namespace psxt
 						}
 					}
 
-					if (type == nullptr && (hasTerminals || i->value->value->getRules()->count == emptyRules))
+					if (type == nullptr && (hasTerminals || i->value->value->getRules()->length() == emptyRules))
 					{
 						i->value->value->setReturnType (LString::alloc("void *"));
 					}
@@ -330,17 +330,17 @@ namespace psxt
 
 							if (token->getChar() == ';' || token->getChar() == '|')
 							{
-								if (production->getElems()->count == 1 && production->getElems()->top->value->getValue()->equals (nonterm->getName()))
+								if (production->getElems()->length() == 1 && production->getElems()->head()->value->getValue()->equals (nonterm->getName()))
 									errmsg (token, E_INVALID_RECURSION, production->getId(), nonterm->getName()->c_str());
 
 								if (production->getVisibility() == 1)
 								{
 									if (stateB == SECTION_LEXICON)
 									{
-										if (production->getElems()->count == 0)
+										if (production->getElems()->length() == 0)
 											errmsg (token, E_REQUIRED_ELEM, nonterm->getName()->c_str(), production->getId());
 										else
-											context->addExport (stateB, production->getElems()->top->value->getValue(), production);
+											context->addExport (stateB, production->getElems()->head()->value->getValue(), production);
 									}
 									else
 										printf("!!!!!!!!!!!");//context->addExport (stateB, production);
@@ -395,7 +395,7 @@ namespace psxt
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
 						if (token->getType() != TTYPE_SQSTRING && token->getType() != TTYPE_DQSTRING)
-							return errmsg (token, E_EXPECTED_VALUE, production->getElems()->bottom->value->getCstr(), nonterm->getName()->c_str(), production->getId());
+							return errmsg (token, E_EXPECTED_VALUE, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						production->addElem ((new Token (token))->setType (TTYPE_NVALUE));
 
@@ -407,7 +407,7 @@ namespace psxt
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
 						if (token->getType() != TTYPE_SYMBOL && token->getChar() != ')')
-							return errmsg (token, E_EXPECTED_RPAREN, production->getElems()->bottom->value->getCstr(), nonterm->getName()->c_str(), production->getId());
+							return errmsg (token, E_EXPECTED_RPAREN, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						state = 4;
 						break;
@@ -417,7 +417,7 @@ namespace psxt
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
 						if (token->getType() != TTYPE_SQSTRING && token->getType() != TTYPE_DQSTRING)
-							return errmsg (token, E_EXPECTED_VALUE, production->getElems()->bottom->value->getCstr(), nonterm->getName()->c_str(), production->getId());
+							return errmsg (token, E_EXPECTED_VALUE, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						state = 8;
 						break;
@@ -427,7 +427,7 @@ namespace psxt
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
 						if (token->getType() != TTYPE_SYMBOL && token->getChar() != ')')
-							return errmsg (token, E_EXPECTED_RPAREN, production->getElems()->bottom->value->getCstr(), nonterm->getName()->c_str(), production->getId());
+							return errmsg (token, E_EXPECTED_RPAREN, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						state = 4;
 						break;
@@ -499,7 +499,7 @@ namespace psxt
 								break;
 
 							if (token->getType() != TTYPE_SYMBOL || token->getChar() != ',')
-								return errmsg (token, E_EXPECTED_COMMA, production->getElems()->bottom->value->getCstr(), nonterm->getName()->c_str());
+								return errmsg (token, E_EXPECTED_COMMA, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str());
 						}
 
 						// VIOLET:ENSURE NO DUPLICATE
@@ -515,20 +515,20 @@ namespace psxt
 
 			Linkable<Pair<LString*, NonTerminal*>*> *pair;
 
-			pair = context->getNonTerminalPairs(SECTION_LEXICON)->top;
+			pair = context->getNonTerminalPairs(SECTION_LEXICON)->head();
 			if (pair != nullptr && !(finished & 1))
 			{
-				for (Linkable<ProductionRule*> *i = pair->value->value->getRules()->top; i; i = i->next)
+				for (Linkable<ProductionRule*> *i = pair->value->value->getRules()->head(); i; i = i->next())
 				{
 					if (i->value->getVisibility() != 0) continue;
 
-					if (i->value->getElems()->count == 0)
+					if (i->value->getElems()->length() == 0)
 					{
 						i->value->setVisibility (2);
 					}
 					else
 					{
-						context->addExport (SECTION_LEXICON, i->value->getElems()->top->value->getValue(), i->value);
+						context->addExport (SECTION_LEXICON, i->value->getElems()->head()->value->getValue(), i->value);
 						i->value->setVisibility (1);
 					}
 				}
@@ -556,7 +556,7 @@ namespace psxt
 				finished |= 1;
 			}
 
-			pair = context->getNonTerminalPairs(SECTION_GRAMMAR)->top;
+			pair = context->getNonTerminalPairs(SECTION_GRAMMAR)->head();
 			if (pair != nullptr && !(finished & 2))
 			{
 				nonterm = new NonTerminal (0, LString::alloc("__start__"));

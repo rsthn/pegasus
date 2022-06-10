@@ -95,7 +95,7 @@ int count0=0, count1=0, count2=0, count3=0;
 				pool = new LList<LString*> ();
 
 			pool->push(value);
-			value->node = pool->bottom;
+			value->node = pool->tail();
 
 			return value;
 		}

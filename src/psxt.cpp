@@ -24,11 +24,11 @@
 #include <time.h>
 #include <stdlib.h>
 
-#include <asr/utils/List.h>
-#include <asr/utils/String.h>
-#include <asr/utils/Triad.h>
-#include <asr/utils/LList.h>
-#include <asr/utils/Traits.h>
+#include <asr/utils/List>
+#include <asr/utils/String>
+#include <asr/utils/Triad>
+#include <asr/utils/LList>
+#include <asr/utils/Traits>
 
 #include <Integer.h>
 
@@ -120,7 +120,7 @@ int main (int argc, char *argv[])
 	psxt::Context *context = new psxt::Context ();
 	psxt::Parser *parser = new psxt::Parser (context);
 
-	for (Linkable<String*> *i = sources->top; i; i = i->next)
+	for (Linkable<String*> *i = sources->head(); i; i = i->next())
 	{
 		psxt::Scanner *scanner = new psxt::Scanner (i->value);
 		parser->parse (scanner);
@@ -151,13 +151,13 @@ int main (int argc, char *argv[])
 	LList<psxt::ItemSet*> *itemsets = psxt::ItemSetBuilder::build (context, SECTION_LEXICON, initialSymbol);
 	if (itemsets != nullptr)
 	{
-		lsnum = itemsets->count;
+		lsnum = itemsets->length();
 
 		/*if (dumpi)
 		{
 			os = fopen ("lexicon-itemsets.txt", "wb");
 
-			for (Linkable<psxt::ItemSet*> *i = itemsets->top; i; i = i->next)
+			for (Linkable<psxt::ItemSet*> *i = itemsets->head(); i; i = i->next())
 				i->value->dump (os);
 
 			fclose (os);
@@ -165,13 +165,13 @@ int main (int argc, char *argv[])
 
 		#if ENABLE_GENERATOR==1
 		printf("[36mAbout to start FsmStateBuilder for the lexicon.[0m\n");
-		List<psxt::FsmState*> *states = psxt::FsmStateBuilder::build (context, SECTION_LEXICON, itemsets->top->value);
+		List<psxt::FsmState*> *states = psxt::FsmStateBuilder::build (context, SECTION_LEXICON, itemsets->head()->value);
 
 		if (dump)
 		{
 			os = fopen ("lexicon-states.txt", "wb");
 
-			for (Linkable<psxt::FsmState*> *i = states->top; i; i = i->next)
+			for (Linkable<psxt::FsmState*> *i = states->head(); i; i = i->next())
 				i->value->dump (os);
 
 			fclose (os);
@@ -195,13 +195,13 @@ int main (int argc, char *argv[])
 	itemsets = psxt::ItemSetBuilder::build (context, SECTION_GRAMMAR, initialSymbol);
 	if (itemsets != nullptr)
 	{
-		psnum = itemsets->count;
+		psnum = itemsets->length();
 
 		if (dumpi)
 		{
 			os = fopen ("grammar-itemsets.txt", "wb");
 
-			for (Linkable<psxt::ItemSet*> *i = itemsets->top; i; i = i->next)
+			for (Linkable<psxt::ItemSet*> *i = itemsets->head(); i; i = i->next())
 				i->value->dump (os);
 
 			fclose (os);
@@ -209,13 +209,13 @@ int main (int argc, char *argv[])
 
 		#if ENABLE_GENERATOR==1
 		printf("[36mAbout to start FsmStateBuilder for the grammar.[0m\n");
-		List<psxt::FsmState*> *states = psxt::FsmStateBuilder::build (context, SECTION_GRAMMAR, itemsets->top->value);
+		List<psxt::FsmState*> *states = psxt::FsmStateBuilder::build (context, SECTION_GRAMMAR, itemsets->head()->value);
 
 		if (dump)
 		{
 			os = fopen ("grammar-states.txt", "wb");
 
-			for (Linkable<psxt::FsmState*> *i = states->top; i; i = i->next)
+			for (Linkable<psxt::FsmState*> *i = states->head(); i; i = i->next())
 				i->value->dump (os);
 
 			fclose (os);

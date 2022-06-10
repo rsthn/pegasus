@@ -16,7 +16,7 @@
 **	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <asr/utils/Pair.h>
+#include <asr/utils/Pair>
 
 #include <psxt/ProductionRule.h>
 #include <psxt/NonTerminal.h>
@@ -92,13 +92,13 @@ namespace psxt
 		{
 			for (int j = 0; j < SECTION_COUNT; j++)
 			{
-				for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->top; i; i = i->next)
+				for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->head(); i; i = i->next())
 				{
 					i->value->key->free();
 					delete i->value;
 				}
 
-				for (Linkable<Pair<LString*, ProductionRule*>*> *i = exports[j]->top; i; i = i->next)
+				for (Linkable<Pair<LString*, ProductionRule*>*> *i = exports[j]->head(); i; i = i->next())
 				{
 					delete i->value->reset();
 				}
@@ -108,13 +108,13 @@ namespace psxt
 			}
 
 			/* ** */
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets_deletable->top; i; i = i->next)
+			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets_deletable->head(); i; i = i->next())
 			{
 				i->value->key->free();
 				delete i->value;
 			}
 
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->top; i; i = i->next)
+			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->head(); i; i = i->next())
 			{
 				i->value->key->free();
 				i->value->value = nullptr;
@@ -146,7 +146,7 @@ namespace psxt
 
 			List<NonTerminal*> *list = new List<NonTerminal*> ();
 
-			for (Linkable<Pair<LString*, NonTerminal*>*> *node = sections[section]->top; node != nullptr; node = node->next)
+			for (Linkable<Pair<LString*, NonTerminal*>*> *node = sections[section]->head(); node != nullptr; node = node->next())
 				list->push (node->value->value);
 
 			return list;
@@ -254,10 +254,10 @@ namespace psxt
 			if (section < 0 || section >= SECTION_COUNT)
 				return nullptr;
 
-			Linkable<Pair<LString*, NonTerminal*>*> *i = sections[section]->top;
+			Linkable<Pair<LString*, NonTerminal*>*> *i = sections[section]->head();
 
 			while (i && i->value->value->getId() != id)
-				i = i->next;
+				i = i->next();
 
 			return i == nullptr ? nullptr : i->value->value;
 		}

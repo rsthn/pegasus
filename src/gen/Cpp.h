@@ -56,11 +56,11 @@ namespace gen
 		protected: void writeReduction (FsmState::ReduceAction *reduce, int section, const char *nl)
 		{
 			writef ("%s nonterm = %u;", nl, reduce->rule->getNonTerminal()->getId());
-			writef (" release = %u;", reduce->rule->getElems()->count);
+			writef (" release = %u;", reduce->rule->getElems()->length());
 			writef (" reduce = %u;", reduce->rule->getVisibility() + 1);
 
 			if (reduce->rule->getVisibility() == 1)
-				writef (" code = %d;", getExportId (section, reduce->rule->getElems()->top->value));
+				writef (" code = %d;", getExportId (section, reduce->rule->getElems()->head()->value));
 
 			if (section == SECTION_LEXICON)
 				return;
@@ -86,7 +86,7 @@ namespace gen
 
 			write (";");
 
-			for (Linkable<Pair<int, const char*>*> *i = left->top; i; i = i->next)
+			for (Linkable<Pair<int, const char*>*> *i = left->head(); i; i = i->next())
 			{
 				if (isConstPtr(i->value->value))
 					continue;
@@ -106,9 +106,9 @@ namespace gen
 		*/
 		protected: void writeCondition (List<Token*> *list)
 		{
-			for (Linkable<Token*> *i = list->top; i; i = i->next)
+			for (Linkable<Token*> *i = list->head(); i; i = i->next())
 			{
-				if (i != list->top) write (" || ");
+				if (i != list->head()) write (" || ");
 
 				if (i->value->getNValue() != nullptr)
 					writef ("token->equals(%d, \"%s\")", getExportId(SECTION_LEXICON, i->value), i->value->getNValue()->getCstr());
@@ -129,7 +129,7 @@ namespace gen
 
 			write ("switch (state)\n{");
 
-			for (Linkable<psxt::FsmState*> *i = states->top; i; i = i->next)
+			for (Linkable<psxt::FsmState*> *i = states->head(); i; i = i->next())
 			{
 				FsmState::ReduceAction *defaultReduction = nullptr;
 				psxt::FsmState *state = i->value;
@@ -144,7 +144,7 @@ namespace gen
 					writef ("%s switch (nonterm)", nl3);
 					writef ("%s {", nl3);
 
-					for (Linkable<psxt::FsmState::GotoAction*> *i = state->getGotoActions()->top; i; i = i->next)
+					for (Linkable<psxt::FsmState::GotoAction*> *i = state->getGotoActions()->head(); i; i = i->next())
 						writef ("%s case %u: state = %u; break;", nl4, i->value->nonterm->getId(), i->value->nextState->getId());
 
 					writef ("%s }\n", nl3);
@@ -156,7 +156,7 @@ namespace gen
 				// Write REDUCE actions.
 				if (state->getReduceActions() != nullptr && section != SECTION_LEXICON)
 				{
-					for (Linkable<psxt::FsmState::ReduceAction*> *i = state->getReduceActions()->top; i; i = i->next)
+					for (Linkable<psxt::FsmState::ReduceAction*> *i = state->getReduceActions()->head(); i; i = i->next())
 					{
 						if (i->value->follow == nullptr)
 						{
@@ -183,7 +183,7 @@ namespace gen
 					switch (section)
 					{
 						case SECTION_LEXICON:
-							for (Linkable<psxt::FsmState::ShiftAction*> *i = state->getShiftActions()->top; i; i = i->next)
+							for (Linkable<psxt::FsmState::ShiftAction*> *i = state->getShiftActions()->head(); i; i = i->next())
 							{
 								writef ("%s ", nl3);
 
@@ -209,7 +209,7 @@ namespace gen
 							break;
 
 						case SECTION_GRAMMAR:
-							for (Linkable<psxt::FsmState::ShiftAction*> *i = state->getShiftActions()->top; i; i = i->next)
+							for (Linkable<psxt::FsmState::ShiftAction*> *i = state->getShiftActions()->head(); i; i = i->next())
 							{
 								if (i->value->nextState == nullptr)
 									continue;
@@ -225,7 +225,7 @@ namespace gen
 
 								writef ("case %u: ", getExportId (SECTION_LEXICON, i->value->value));
 
-								for (Linkable<psxt::FsmState::ShiftAction*> *j = i; j; j = j->next)
+								for (Linkable<psxt::FsmState::ShiftAction*> *j = i; j; j = j->next())
 								{
 									if (!j->value->value->equals (i->value->value))
 										continue;
@@ -254,7 +254,7 @@ namespace gen
 				if (defaultReduction != nullptr || (state->getReduceActions() != nullptr && section == SECTION_LEXICON))
 				{
 					if (!defaultReduction)
-						defaultReduction = state->getReduceActions()->top->value;
+						defaultReduction = state->getReduceActions()->head()->value;
 
 					if (state->getShiftActions() != nullptr)
 						writef ("%s if (shift) break;\n", nl2);
@@ -282,7 +282,7 @@ namespace gen
 			const char *nl3 = "           ";
 			const char *nl4 = "\n               ";
 
-			for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(SECTION_ARRAYS)->top; i; i = i->next)
+			for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(SECTION_ARRAYS)->head(); i; i = i->next())
 			{
 				int id = getExportId (SECTION_LEXICON, i->value->value->getReturnType());
 				int id2 = getExportId (SECTION_LEXICON, i->value->key);
@@ -290,7 +290,7 @@ namespace gen
 				writef ("%s if (token->getType() == %u)\n", nl3, id);
 				writef ("%s {", nl3);
 
-				for (Linkable<Token*> *j = i->value->value->getRules()->top->value->getElems()->top; j; j = j->next)
+				for (Linkable<Token*> *j = i->value->value->getRules()->head()->value->getElems()->head(); j; j = j->next())
 				{
 					writef ("%s if (token->equals(\"%s\")) { return token->setType(%u); }", nl4, j->value->getCstr(), id2);
 				}

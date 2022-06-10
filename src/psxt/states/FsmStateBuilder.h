@@ -59,13 +59,13 @@ namespace psxt
 			// Insert new state in ascending order (by id).
 			state = new FsmState (root->getId());
 
-			if (completed->top == nullptr || completed->top->value->getId() > state->getId())
+			if (completed->head() == nullptr || completed->head()->value->getId() > state->getId())
 			{
 				completed->unshift (state);
 			}
 			else
 			{
-				for (Linkable<FsmState*> *i = completed->bottom; i; i = i->prev)
+				for (Linkable<FsmState*> *i = completed->tail(); i; i = i->prev())
 				{
 					if (i->value->getId() < state->getId())
 					{
@@ -76,7 +76,7 @@ namespace psxt
 			}
 
 			// Process each item in the itemset.
-			for (Linkable<Item*> *i = root->getItems()->top; i; i = i->next)
+			for (Linkable<Item*> *i = root->getItems()->head(); i; i = i->next())
 			{
 				Token *elem = i->value->getElem();
 
@@ -132,11 +132,11 @@ namespace psxt
 			if (reductions == nullptr) return state;
 
 			// Single reduction without shifts, no need for lookaheads.
-			if (state->getShiftActions() == nullptr && reductions->count == 1)
+			if (state->getShiftActions() == nullptr && reductions->length() == 1)
 				return state;
 
 			// Single reduction with shifts, verify if look-aheads collide with the shifts.
-			if (state->getShiftActions() != nullptr && reductions->count == 1)
+			if (state->getShiftActions() != nullptr && reductions->length() == 1)
 			{
 				Linkable<FsmState::ShiftAction*> *i;
 
@@ -148,9 +148,9 @@ if (rs == nullptr) printf("\nUNABLE TO GET REACH SET\n"); else rs->dump(stdout);
 printf ("\n\n");
 return state;
 				List<Pair<Token*, ItemSet*>*> *tmp = nullptr;
-				// TODO use this: reductions->top->value->item->getFollow();
+				// TODO use this: reductions->head()->value->item->getFollow();
 
-				for (i = state->getShiftActions()->top; i; i = i->next)
+				for (i = state->getShiftActions()->head(); i; i = i->next())
 				{
 					if (tmp->contains (i->value->value))
 						break;
@@ -169,7 +169,7 @@ return state;
 			// Lexicon section does not support lookaheads. Only single reductions must be present.
 			if (section == SECTION_LEXICON)
 			{
-				if (reductions->count > 1)
+				if (reductions->length() > 1)
 				{
 					errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
 				}
@@ -178,7 +178,7 @@ return state;
 			}
 
 			// Load initial follow set of all reductions.
-			for (Linkable<FsmState::ReduceAction*> *i = reductions->top; i; i = i->next)
+			for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i; i = i->next())
 				i->value->loadFollow();
 
 			// Verify if a reduction follow symbol collides with a shift symbol.
@@ -186,9 +186,9 @@ return state;
 
 			if (state->getShiftActions() != nullptr)
 			{
-				for (Linkable<FsmState::ReduceAction*> *i = reductions->top; i && !err; i = i->next)
+				for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i && !err; i = i->next())
 				{
-					for (Linkable<FsmState::ShiftAction*> *j = state->getShiftActions()->top; j; j = j->next)
+					for (Linkable<FsmState::ShiftAction*> *j = state->getShiftActions()->head(); j; j = j->next())
 					{
 						if (i->value->follow->contains (j->value->value))
 						{
@@ -210,11 +210,11 @@ return state;
 			// Verify if a reduction follow symbol collides with another reduction.
 			err = false;
 
-			for (Linkable<FsmState::ReduceAction*> *i = reductions->top; i && !err; i = i->next)
+			for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i && !err; i = i->next())
 			{
-				for (Linkable<FsmState::ReduceAction*> *j = i->next; j && !err; j = j->next)
+				for (Linkable<FsmState::ReduceAction*> *j = i->next(); j && !err; j = j->next())
 				{
-					for (Linkable<Token*> *k = j->value->follow->top; k; k = k->next)
+					for (Linkable<Token*> *k = j->value->follow->head(); k; k = k->next())
 					{
 						if (i->value->follow->contains (k->value))
 						{

@@ -16,7 +16,7 @@
 **	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <asr/io/FileInputStream.h>
+#include <asr/io/FileInputStream>
 
 #include <psxt/LString.h>
 #include <psxt/Token.h>

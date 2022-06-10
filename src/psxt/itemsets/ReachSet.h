@@ -299,9 +299,9 @@ xxx++;
 			if (context != nullptr)
 				context->addReachSet (nonterm->getName(), set, false);
 
-			for (Linkable<ProductionRule*> *i = nonterm->getRules()->top; i; i = i->next)
+			for (Linkable<ProductionRule*> *i = nonterm->getRules()->head(); i; i = i->next())
 			{
-				set->addPath (ReachPath::buildFromRule (i->value->getElems()->top, context));
+				set->addPath (ReachPath::buildFromRule (i->value->getElems()->head(), context));
 			}
 //printf("---------\nReach(%s) [NTERM]:\n", nonterm->getName()->c_str());
 //set->dump(stdout);
@@ -327,12 +327,12 @@ xxx++;
 			if (context != nullptr)
 				context->addReachSet (itemset->getSignature(), set, true);
 
-			for (Linkable<Item*> *i = itemset->getItems()->top; i; i = i->next)
+			for (Linkable<Item*> *i = itemset->getItems()->head(); i; i = i->next())
 			{
 				Linkable<Token*> *elem = i->value->getNode();
 
 				for (int j = 0; j < offset && elem != nullptr; j++)
-					elem = elem->next;
+					elem = elem->next();
 
 				if (elem != nullptr)
 					set->addPath (ReachPath::buildFromRule (elem, context));
@@ -353,11 +353,11 @@ xxx--;
 		{
 			fprintf (os, "{");
 
-			for (Linkable<ReachPath*> *i = this->list->top; i; i = i->next)
+			for (Linkable<ReachPath*> *i = this->list->head(); i; i = i->next())
 			{
 				i->value->dump(os);
 
-				if (i->next != nullptr)
+				if (i->next() != nullptr)
 					fprintf (os, ", ");
 			}
 
@@ -375,7 +375,7 @@ xxx--;
 xxx++;
 		ReachPath *path = new ReachPath ();
 
-		for (Linkable<Token*> *i = elem; i; i = i->next)
+		for (Linkable<Token*> *i = elem; i; i = i->next())
 		{
 			if (i->value->getNonTerminal() != nullptr)
 				path->addItem (ReachSet::buildFromNonTerminal(i->value->getNonTerminal(), context));
@@ -393,14 +393,14 @@ xxx--;
 	{
 		fprintf (os, "[");
 
-		for (Linkable<ReachSetNode*> *i = this->list->top; i; i = i->next)
+		for (Linkable<ReachSetNode*> *i = this->list->head(); i; i = i->next())
 		{
 			if (i->value->getNodeType() == ReachSetNode::REACH_SET && ((ReachSet *)i->value)->getNonTerminal() != nullptr)
 				fprintf (os, "#%s", ((ReachSet *)i->value)->getNonTerminal()->getName()->c_str());
 			else
 				i->value->dump(os);
 
-			if (i->next != nullptr)
+			if (i->next() != nullptr)
 				fprintf (os, ", ");
 		}
 
@@ -458,7 +458,7 @@ namespace psxt
 	ReachPath::~ReachPath()
 	{
 printf("%*s~ReachPath %x => %d\n", xxx*2, "", this, count2-1);
-		for (Linkable<ReachSetNode*> *i = this->list->top; i; i = i->next)
+		for (Linkable<ReachSetNode*> *i = this->list->head(); i; i = i->next())
 		{
 printf("#");
 			/*if (i->value->nodeType == ReachSetNode::REACH_PATH)

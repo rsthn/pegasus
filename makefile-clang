@@ -1,7 +1,0 @@
-all: psxt
-
-CPP = clang++
-
-psxt:
-	echo psxt.cpp:
-	$(CPP) -Isrc -opsxt.exe src\psxt.cpp -lasr

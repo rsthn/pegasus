@@ -100,7 +100,7 @@ namespace psxt
 		void set (ProductionRule *rule)
 		{
 			this->rule = rule;
-			this->elem = rule->getElems()->top;
+			this->elem = rule->getElems()->head();
 			this->index = 0;
 
 			this->celem = nullptr;
@@ -237,7 +237,7 @@ namespace psxt
 
 			if (elem == nullptr) return this;
 
-			elem = elem->next;
+			elem = elem->next();
 			index++;
 
 			updateHash();
@@ -252,7 +252,7 @@ namespace psxt
 		{
 			int j = 0;
 
-			for (Linkable<Token*> *i = this->rule->getElems()->top; i; i = i->next)
+			for (Linkable<Token*> *i = this->rule->getElems()->head(); i; i = i->next())
 			{
 				if (index == j++)
 				{
@@ -271,7 +271,7 @@ namespace psxt
 				);
 			}
 
-			if (index >= rule->getElems()->count)
+			if (index >= rule->getElems()->length())
 			{
 				fprintf (output, "* [%s#%u]", rule->getNonTerminal()->getName()->c_str(), rule->getId());
 			}

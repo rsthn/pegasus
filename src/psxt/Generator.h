@@ -151,7 +151,7 @@ namespace psxt
 								// and usually unused variables will cause the generator to add code to delete it.
 								if (m == 0)
 								{
-									for (Linkable<Pair<int, const char*>*> *z = left->top; z; z = z->next)
+									for (Linkable<Pair<int, const char*>*> *z = left->head(); z; z = z->next())
 									{
 										if (z->value->key == i)
 										{
