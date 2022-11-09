@@ -1,0 +1,11 @@
+ITEMSET 1
+  > [0] *__tokens (EOF) 
+  > [0] *(EOF) 
+  > [0] *__tokens token 
+  > [0] *token 
+  > [0] *identifier 
+  > [0] *blanks 
+  > [0] *identifier [a-z;] 
+  > [0] *[;a-z] 
+  > [0] *[\x09\x0a\x0d\x20] 
+

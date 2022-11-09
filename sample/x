@@ -2,87 +2,87 @@ STARTING_WITH=0
 RedStar Pegasus v5.00 Copyright (c) 2006-2018 RedStar Technologies, All rights reserved.
 
 --- BUILDING REACHSET FOR 1 ---
-    +ReachSet ab344d => 1
-      +ReachPath ab00ad => 1
-        +ReachSet ab36cd => 2
-          +ReachPath ab080d => 2
-          ReachPath[ab080d]: ADD ab36cd
-            +ReachSet ab3605 => 3
-              +ReachPath ab07ad => 3
-                +ReachSet ab376d => 4
-                  +ReachPath ab04ed => 4
-                  ReachPath[ab04ed]: ADD ab376d
-                  +ReachElement ab078d => 1
-                  ReachPath[ab04ed]: ADD ab078d
-                ReachSet[ab376d]: ADD ab04ed
-                  +ReachPath ab084d => 5
-                  +ReachElement ab064d => 2
-                  ReachPath[ab084d]: ADD ab064d
-                ReachSet[ab376d]: ADD ab084d
-              ReachPath[ab07ad]: ADD ab376d
-            ReachSet[ab3605]: ADD ab07ad
-              +ReachPath ab06cd => 6
-                +ReachSet ab3745 => 5
-                  +ReachPath ab070d => 7
-                  +ReachElement ab076d => 3
-                  ReachPath[ab070d]: ADD ab076d
-                ReachSet[ab3745]: ADD ab070d
-              ReachPath[ab06cd]: ADD ab3745
-            ReachSet[ab3605]: ADD ab06cd
-          ReachPath[ab080d]: ADD ab3605
-        ReachSet[ab36cd]: ADD ab080d
-          +ReachPath a99875 => 8
-          ReachPath[a99875]: ADD ab3605
-        ReachSet[ab36cd]: ADD a99875
-      ReachPath[ab00ad]: ADD ab36cd
-      +ReachElement a99935 => 4
-      ReachPath[ab00ad]: ADD a99935
-    ReachSet[ab344d]: ADD ab00ad
-      +ReachPath a99835 => 9
-      +ReachElement a99a15 => 5
-      ReachPath[a99835]: ADD a99a15
-    ReachSet[ab344d]: ADD a99835
-      +ReachPath a998d5 => 10
-      ReachPath[a998d5]: ADD ab36cd
-      ReachPath[a998d5]: ADD ab3605
-    ReachSet[ab344d]: ADD a998d5
-      +ReachPath a997d5 => 11
-      ReachPath[a997d5]: ADD ab3605
-    ReachSet[ab344d]: ADD a997d5
-      +ReachPath a997b5 => 12
-      ReachPath[a997b5]: ADD ab376d
-    ReachSet[ab344d]: ADD a997b5
-      +ReachPath a99af5 => 13
-      ReachPath[a99af5]: ADD ab3745
-    ReachSet[ab344d]: ADD a99af5
-      +ReachPath a99cd5 => 14
-      ReachPath[a99cd5]: ADD ab376d
-      +ReachElement a99c35 => 6
-      ReachPath[a99cd5]: ADD a99c35
-    ReachSet[ab344d]: ADD a99cd5
-    +ReachPath a99c55 => 15
-    ReachSet[ab344d]: ADD a99c55
-    +ReachPath a99d15 => 16
-    ReachSet[ab344d]: ADD a99d15
+    +ReachSet 6602b5 => 1
+      +ReachPath 1b69c5 => 1
+        +ReachSet 676965 => 2
+          +ReachPath 1b6305 => 2
+          ReachPath[1b6305]: ADD 676965
+            +ReachSet 676565 => 3
+              +ReachPath 1b6245 => 3
+                +ReachSet 675c25 => 4
+                  +ReachPath 1b6815 => 4
+                  ReachPath[1b6815]: ADD 675c25
+                  +ReachElement 1b68d5 => 1
+                  ReachPath[1b6815]: ADD 1b68d5
+                ReachSet[675c25]: ADD 1b6815
+                  +ReachPath 1b7025 => 5
+                  +ReachElement 1b6e15 => 2
+                  ReachPath[1b7025]: ADD 1b6e15
+                ReachSet[675c25]: ADD 1b7025
+              ReachPath[1b6245]: ADD 675c25
+            ReachSet[676565]: ADD 1b6245
+              +ReachPath 1b6fc5 => 6
+                +ReachSet 6761a5 => 5
+                  +ReachPath 1b6d25 => 7
+                  +ReachElement 6714c5 => 3
+                  ReachPath[1b6d25]: ADD 6714c5
+                ReachSet[6761a5]: ADD 1b6d25
+              ReachPath[1b6fc5]: ADD 6761a5
+            ReachSet[676565]: ADD 1b6fc5
+          ReachPath[1b6305]: ADD 676565
+        ReachSet[676965]: ADD 1b6305
+          +ReachPath 6711f5 => 8
+          ReachPath[6711f5]: ADD 676565
+        ReachSet[676965]: ADD 6711f5
+      ReachPath[1b69c5]: ADD 676965
+      +ReachElement 676e25 => 4
+      ReachPath[1b69c5]: ADD 676e25
+    ReachSet[6602b5]: ADD 1b69c5
+      +ReachPath 676a35 => 9
+      +ReachElement 676ac5 => 5
+      ReachPath[676a35]: ADD 676ac5
+    ReachSet[6602b5]: ADD 676a35
+      +ReachPath 676af5 => 10
+      ReachPath[676af5]: ADD 676965
+      ReachPath[676af5]: ADD 676565
+    ReachSet[6602b5]: ADD 676af5
+      +ReachPath 6772d5 => 11
+      ReachPath[6772d5]: ADD 676565
+    ReachSet[6602b5]: ADD 6772d5
+      +ReachPath 677485 => 12
+      ReachPath[677485]: ADD 675c25
+    ReachSet[6602b5]: ADD 677485
+      +ReachPath 6774e5 => 13
+      ReachPath[6774e5]: ADD 6761a5
+    ReachSet[6602b5]: ADD 6774e5
+      +ReachPath 676b85 => 14
+      ReachPath[676b85]: ADD 675c25
+      +ReachElement 677245 => 6
+      ReachPath[676b85]: ADD 677245
+    ReachSet[6602b5]: ADD 676b85
+    +ReachPath 677005 => 15
+    ReachSet[6602b5]: ADD 677005
+    +ReachPath 6771e5 => 16
+    ReachSet[6602b5]: ADD 6771e5
 ---------
 Reach(400:800) [SET]:
 {[#__tokens, EOF], [EOF], [#__tokens, #token], [#token], [#identifier], [#blanks], [#identifier, [a-z;]], [], []}
 
 DELETE sources
 DELETE context
-~ReachSet ab344d => 4
-~ReachPath ab00ad => 15
-##~ReachElement a99935 => 5
-~ReachPath a99835 => 14
-#~ReachElement a99a15 => 4
-~ReachPath a998d5 => 13
-##~ReachPath a997d5 => 12
-#~ReachPath a997b5 => 11
-#~ReachPath a99af5 => 10
-#~ReachPath a99cd5 => 9
-##~ReachElement a99c35 => 3
-~ReachPath a99c55 => 8
-~ReachPath a99d15 => 7
+~ReachSet 6602b5 => 4
+~ReachPath 1b69c5 => 15
+##~ReachElement 676e25 => 5
+~ReachPath 676a35 => 14
+#~ReachElement 676ac5 => 4
+~ReachPath 676af5 => 13
+##~ReachPath 6772d5 => 12
+#~ReachPath 677485 => 11
+#~ReachPath 6774e5 => 10
+#~ReachPath 676b85 => 9
+##~ReachElement 677245 => 3
+~ReachPath 677005 => 8
+~ReachPath 6771e5 => 7
 DELETE gen
 DELETE name
 DELETE outdir

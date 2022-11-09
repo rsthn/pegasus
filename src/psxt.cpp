@@ -17,8 +17,7 @@
 */
 
 #define __YEAR__ 2018
-
-#define ENABLE_GENERATOR 0
+#define ENABLE_GENERATOR 1
 
 #include <assert.h>
 #include <time.h>
@@ -153,7 +152,7 @@ int main (int argc, char *argv[])
 	{
 		lsnum = itemsets->length();
 
-		/*if (dumpi)
+		if (dumpi)
 		{
 			os = fopen ("lexicon-itemsets.txt", "wb");
 
@@ -161,9 +160,9 @@ int main (int argc, char *argv[])
 				i->value->dump (os);
 
 			fclose (os);
-		}*/
+		}
 
-		#if ENABLE_GENERATOR==1
+#if ENABLE_GENERATOR==1
 		printf("[36mAbout to start FsmStateBuilder for the lexicon.[0m\n");
 		List<psxt::FsmState*> *states = psxt::FsmStateBuilder::build (context, SECTION_LEXICON, itemsets->head()->value);
 
@@ -185,7 +184,7 @@ int main (int argc, char *argv[])
 			delete str;
 
 		delete states;
-		#endif
+#endif
 		delete itemsets;
 
 		//violet
@@ -254,7 +253,7 @@ int main (int argc, char *argv[])
 
 	LString::finish();
 
-	//printf ("psxt: Generated %u scanner states, and %u parser states.\n", lsnum, psnum);
+	printf ("psxt: Generated %u scanner states, and %u parser states.\n", lsnum, psnum);
 	printf ("psxt: Finished.\n");
 
 	if (asr::memblocks) printf ("Warning: System might be leaking (left %u blocks wandering).\n", asr::memblocks);

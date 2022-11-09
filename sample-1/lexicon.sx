@@ -1,0 +1,32 @@
+
+[lexicon]
+
+	token
+		:	identifier
+		|	-blanks
+		;
+
+	blanks
+		:	"[\r\n\t\s]"
+		;
+
+	identifier
+		:	identifier "[a-z;]"
+		|	"[a-z;]"
+		;
+
+[arrays]
+
+	keyword (identifier) : "fn", "var" ;
+
+[grammar]
+
+	S	{null}
+		:	declaration-list	{ Record("\n") }
+		;
+
+	declaration-list {null}
+		:	declaration-list declaration { printf("declaration\n"); }
+		|	declaration { printf("declaration"); }
+		;
+
