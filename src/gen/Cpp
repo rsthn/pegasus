@@ -1,23 +1,10 @@
-/*
-**	gen::Cpp
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+#ifndef __GEN_CPP_H
+#define __GEN_CPP_H
 
-#include <tpl/scanner_cpp.h>
-#include <tpl/parser_cpp.h>
+#include "Generator"
+
+#include "tpl/scanner_cpp.h"
+#include "tpl/parser_cpp.h"
 
 namespace gen
 {
@@ -37,9 +24,10 @@ namespace gen
 		/**
 		**	Generates the code of a state machine given its states.
 		*/
-		public: GeneratorCpp (Context *context) : Generator(context)
+		public: GeneratorCpp (Context *context, const char *&suffix) : Generator(context)
 		{
 			charset = new CharSet ();
+			suffix = ".h";
 		}
 
 		/**
@@ -62,7 +50,7 @@ namespace gen
 			if (reduce->rule->getVisibility() == 1)
 				writef (" code = %d;", getExportId (section, reduce->rule->getElems()->head()->value));
 
-			if (section == SECTION_LEXICON)
+			if (section == Context::SectionType::LEXICON)
 				return;
 
 			bool isNull = false;
@@ -111,9 +99,9 @@ namespace gen
 				if (i != list->head()) write (" || ");
 
 				if (i->value->getNValue() != nullptr)
-					writef ("token->equals(%d, \"%s\")", getExportId(SECTION_LEXICON, i->value), i->value->getNValue()->getCstr());
+					writef ("token->equals(%d, \"%s\")", getExportId(Context::SectionType::LEXICON, i->value), i->value->getNValue()->getCstr());
 				else
-					writef ("symbol==%d", getExportId(SECTION_LEXICON, i->value));
+					writef ("symbol==%d", getExportId(Context::SectionType::LEXICON, i->value));
 			}
 		}
 
@@ -154,18 +142,18 @@ namespace gen
 				}
 
 				// Write REDUCE actions.
-				if (state->getReduceActions() != nullptr && section != SECTION_LEXICON)
+				if (state->getReduceActions() != nullptr && section != Context::SectionType::LEXICON)
 				{
 					for (Linkable<psxt::FsmState::ReduceAction*> *i = state->getReduceActions()->head(); i; i = i->next())
 					{
-						if (i->value->follow == nullptr)
+						if (!i->value->hasFollow())
 						{
 							defaultReduction = i->value;
 							continue;
 						}
 
 						writef ("%s if (", nl2);
-						writeCondition (i->value->follow);
+						writeCondition (i->value->getFollow());
 						write (") {");
 
 						writeReduction (i->value, section, nl3);
@@ -182,12 +170,12 @@ namespace gen
 
 					switch (section)
 					{
-						case SECTION_LEXICON:
+						case Context::SectionType::LEXICON:
 							for (Linkable<psxt::FsmState::ShiftAction*> *i = state->getShiftActions()->head(); i; i = i->next())
 							{
 								writef ("%s ", nl3);
 
-								if (i->value->value->getType() == TTYPE_EOF)
+								if (i->value->value->getType() == Token::Type::END)
 								{
 									write ("case -1: ");
 								}
@@ -208,7 +196,7 @@ namespace gen
 
 							break;
 
-						case SECTION_GRAMMAR:
+						case Context::SectionType::GRAMMAR:
 							for (Linkable<psxt::FsmState::ShiftAction*> *i = state->getShiftActions()->head(); i; i = i->next())
 							{
 								if (i->value->nextState == nullptr)
@@ -216,14 +204,14 @@ namespace gen
 
 								writef ("%s ", nl3);
 
-								if (i->value->value->getType() == TTYPE_EOF)
+								if (i->value->value->getType() == Token::Type::END)
 								{
 									write ("case -1: ");
 									writef ("state = %u; shift = 1; break;", i->value->nextState->getId());
 									continue;
 								}
 
-								writef ("case %u: ", getExportId (SECTION_LEXICON, i->value->value));
+								writef ("case %u: ", getExportId (Context::SectionType::LEXICON, i->value->value));
 
 								for (Linkable<psxt::FsmState::ShiftAction*> *j = i; j; j = j->next())
 								{
@@ -251,7 +239,7 @@ namespace gen
 				}
 
 				// Write last REDUCE action.
-				if (defaultReduction != nullptr || (state->getReduceActions() != nullptr && section == SECTION_LEXICON))
+				if (defaultReduction != nullptr || (state->getReduceActions() != nullptr && section == Context::SectionType::LEXICON))
 				{
 					if (!defaultReduction)
 						defaultReduction = state->getReduceActions()->head()->value;
@@ -276,16 +264,16 @@ namespace gen
 		*/
 		virtual void epilogue (int section)
 		{
-			if (section != SECTION_LEXICON)
+			if (section != Context::SectionType::LEXICON)
 				return;
 
 			const char *nl3 = "           ";
 			const char *nl4 = "\n               ";
 
-			for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(SECTION_ARRAYS)->head(); i; i = i->next())
+			for (Linkable<Pair<LString*, NonTerminal*>*> *i = context->getNonTerminalPairs(Context::SectionType::ARRAYS)->head(); i; i = i->next())
 			{
-				int id = getExportId (SECTION_LEXICON, i->value->value->getReturnType());
-				int id2 = getExportId (SECTION_LEXICON, i->value->key);
+				int id = getExportId (Context::SectionType::LEXICON, i->value->value->getReturnType());
+				int id2 = getExportId (Context::SectionType::LEXICON, i->value->key);
 
 				writef ("%s if (token->getType() == %u)\n", nl3, id);
 				writef ("%s {", nl3);
@@ -309,7 +297,7 @@ namespace gen
 		{
 			setOutputStream (output);
 
-			if (section == SECTION_LEXICON)
+			if (section == Context::SectionType::LEXICON)
 				writeTemplate (states, section, name, (char*)&scanner_cpp[0], sizeof(scanner_cpp));
 			else
 				writeTemplate (states, section, name, (char*)&parser_cpp[0], sizeof(parser_cpp));
@@ -317,3 +305,5 @@ namespace gen
 	};
 
 };
+
+#endif

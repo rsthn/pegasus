@@ -1,20 +1,3 @@
-/*
-**	psxt::Item
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 
 namespace psxt
 {
@@ -138,60 +121,62 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the transition itemset.
-		*/
-		ItemSet *getTransition ()
-		{
+		 * @brief Returns the transition itemset.
+		 * @return ItemSet* 
+		 */
+		ItemSet *getTransition() {
 			return this->transition;
 		}
 
 		/**
-		**	Sets the transition itemset.
-		*/
-		void setTransition (ItemSet *transition)
-		{
+		 * @brief Sets the transition itemset.
+		 * @param transition 
+		 */
+		void setTransition (ItemSet *transition) {
 			this->transition = transition;
 		}
 
 		/**
-		**	Returns the related production rule.
-		*/
-		ProductionRule *getRule ()
-		{
+		 * @brief Returns the related production rule.
+		 * @return ProductionRule* 
+		 */
+		ProductionRule *getRule() {
 			return rule;
 		}
 
 		/**
-		**	Returns the element in focus.
-		*/
-		Token *getElem ()
-		{
+		 * @brief Returns the element in focus.
+		 * @return Token* 
+		 */
+		Token *getElem() {
 			return celem != nullptr ? celem : (elem != nullptr ? elem->value : nullptr);
 		}
 
 		/**
-		**	Returns the node of the element in focus.
-		*/
-		Linkable<Token*> *getNode ()
-		{
+		 * @brief Returns the node of the element in focus.
+		 * @return Linkable<Token*>* 
+		 */
+		Linkable<Token*> *getNode() {
 			return celem != nullptr ? nullptr : elem;
 		}
 
 		/**
-		**	Returns the index of the element in focus.
-		*/
-		int getIndex ()
-		{
+		 * @brief Returns the index of the element in focus.
+		 * @return int 
+		 */
+		int getIndex() {
 			return index;
 		}
 
 		/**
-		**	Rewires the item such that all follows and the element currently wired to oldv will now be wired to newv.
-		*/
-		void rewire (ItemSet *oldv, ItemSet *newv)
+		 * @brief Rewires the item such that all follows and the element currently wired to oldv will now be wired to newv.
+		 * @param oldItemSet 
+		 * @param newItemSet
+		 */
+		void rewire (ItemSet *oldItemSet, ItemSet *newItemSet)
 		{
-			if (this->transition == oldv)
-				this->transition = newv;
+			if (this->transition == oldItemSet)
+				this->transition = newItemSet;
 		}
 
 		/**
@@ -219,36 +204,36 @@ namespace psxt
 			return item->getElem()->equals (this->getElem(), true);
 		}
 
-		int compare (Item *item)
-		{
+		int compare (Item *item) {
 			return equals(item) ? 0 : 1;
 		}
 
 		/**
-		**	Moves the focus to the next element in the production rule.
-		*/
-		Item *moveNext ()
+		 * @brief Moves the focus to the next element in the production rule.
+		 * @return Item* 
+		 */
+		Item *moveNext()
 		{
-			if (celem)
-			{
+			if (celem) {
 				delete celem;
 				celem = nullptr;
 			}
 
-			if (elem == nullptr) return this;
+			if (elem == nullptr)
+				return this;
 
 			elem = elem->next();
 			index++;
 
 			updateHash();
-
 			return this;
 		}
 
 		/**
-		**	Dumps the item to the specified stream.
-		*/
-		void dump (FILE *output, int (*getId) (ItemSet*))
+		 * @brief Dumps the item to the specified stream.
+		 * @param output 
+		 */
+		void dump (FILE *output)
 		{
 			int j = 0;
 
@@ -256,25 +241,22 @@ namespace psxt
 			{
 				if (index == j++)
 				{
-					fprintf (output, "*");
+					fprintf(output, "*");
 
-					if (celem != nullptr)
-					{
-						fprintf (output, "%s ", celem->getCstr());
+					if (celem != nullptr) {
+						fprintf(output, "%s ", celem->getCstr());
 						continue;
 					}
 				}
 
-				fprintf (output, "%s%s%s ", i->value->getType() == TTYPE_EOF ? "(EOF)" : i->value->getCstr(),
+				fprintf(output, "%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
 					i->value->getNValue() != nullptr ? ":" : "",
 					i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : ""
 				);
 			}
 
 			if (index >= rule->getElems()->length())
-			{
-				fprintf (output, "* [%s#%u]", rule->getNonTerminal()->getName()->c_str(), rule->getId());
-			}
+				fprintf(output, "* |> %s#%u", rule->getNonTerminal()->getName()->c_str(), rule->getId());
 		}
 	};
 };

@@ -152,7 +152,7 @@ count1--;
 		{
 			if (this->value != nullptr)
 			{
-				fprintf (os, "%s%s%s", value->getType() == TTYPE_EOF ? "EOF" : value->getCstr(), value->getNValue() != nullptr ? ":" : "", value->getNValue() != nullptr ? value->getNValue()->getCstr() : "");
+				fprintf (os, "%s%s%s", value->getType() == Token::Type::END ? "END" : value->getCstr(), value->getNValue() != nullptr ? ":" : "", value->getNValue() != nullptr ? value->getNValue()->getCstr() : "");
 			}
 			else
 				fprintf (os, "@");

@@ -1,0 +1,48 @@
+ITEMSET 1
+  > [2] *__tokens ε 
+  > [3] *ε 
+  > [2] *__tokens token 
+  > [4] *token 
+  > [5] *identifier 
+  > [6] *blanks 
+  > [5] *identifier [a-zA-Z0-9] 
+  > [7] *[0-9A-Za-z] 
+  > [8] *[\x09\x0a\x0d\x20] 
+
+ITEMSET 2 <1>
+  > [9] __tokens *ε 
+  > [10] __tokens *token 
+  > [5] *identifier 
+  > [6] *blanks 
+  > [5] *identifier [a-zA-Z0-9] 
+  > [7] *[0-9A-Za-z] 
+  > [8] *[\x09\x0a\x0d\x20] 
+
+ITEMSET 3 <1>
+  > [0] ε * |> __start__#2
+
+ITEMSET 4 <1>
+  > [0] token * |> __tokens#2
+
+ITEMSET 5 <1,2>
+  > [0] identifier * |> token#1
+  > [11] identifier *[0-9A-Za-z] 
+
+ITEMSET 6 <1,2>
+  > [0] blanks * |> token#2
+
+ITEMSET 7 <1,2>
+  > [0] [a-zA-Z0-9] * |> identifier#2
+
+ITEMSET 8 <1,2>
+  > [0] [\r\n\t\s] * |> blanks#1
+
+ITEMSET 9 <2>
+  > [0] __tokens ε * |> __start__#1
+
+ITEMSET 10 <2>
+  > [0] __tokens token * |> __tokens#1
+
+ITEMSET 11 <5>
+  > [0] identifier [a-zA-Z0-9] * |> identifier#1
+

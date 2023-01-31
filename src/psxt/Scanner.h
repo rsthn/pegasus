@@ -18,26 +18,13 @@
 
 #include <asr/io/FileInputStream>
 
-#include <psxt/LString.h>
-#include <psxt/Token.h>
-#include <psxt/ErrorDefs.h>
+#include "LString"
+#include "Token"
+#include "ErrorDefs.h"
 
 namespace psxt
 {
 	using asr::io::FileInputStream;
-
-	/**
-	**	Definition of all the tokens recognizable.
-	*/
-	#define	TTYPE_IDENTIFIER		0x01
-	#define	TTYPE_NUMBER			0x02
-	#define TTYPE_SQSTRING			0x03
-	#define	TTYPE_DQSTRING			0x04
-	#define	TTYPE_SYMBOL			0x05
-	#define	TTYPE_NVALUE			0x06
-	#define TTYPE_BLOCK				0x07
-	#define	TTYPE_EOF				0x70
-	#define	TTYPE_UNKNOWN			0x71
 
 	/**
 	**	Simple implementation of a scanner. Its responsibility is to scan symbols from an input stream and return
@@ -142,7 +129,8 @@ namespace psxt
 		*/
 		bool nextToken ()
 		{
-			int s_line, s_col, a = lastch, type = TTYPE_UNKNOWN, ps, s = 0;
+			int s_line, s_col, a = lastch, ps, s = 0;
+			Token::Type type = Token::Type::UNKNOWN;
 			char *buff = buffer;
 			bool cont = true;
 
@@ -201,7 +189,7 @@ namespace psxt
 						if (a == '/') { s = 3; break; }
 						if (a == '*') { s = 4; break; }
 
-						*buff++ = '/'; cont = false; type = TTYPE_SYMBOL;
+						*buff++ = '/'; cont = false; type = Token::Type::SYMBOL;
 						break;
 
 					case 3: // [//]
@@ -220,7 +208,7 @@ namespace psxt
 					case 6: // Number
 						if (a == -1 || !(a >= '0' && a <= '9'))
 						{
-							cont = false; type = TTYPE_NUMBER;
+							cont = false; type = Token::Type::NUMBER;
 						}
 						else
 							*buff++ = a;
@@ -228,13 +216,13 @@ namespace psxt
 						break;
 
 					case 7: // Symbol
-						cont = false; type = TTYPE_SYMBOL;
+						cont = false; type = Token::Type::SYMBOL;
 						break;
 
 					case 8: // Identifier
 						if (a == -1 || !((a == '@' || a == '$' || a == '_' || a == '-' || (a >= '0' && a <= '9') || (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z'))))
 						{
-							cont = false; type = TTYPE_IDENTIFIER;
+							cont = false; type = Token::Type::IDENTIFIER;
 						}
 						else
 							*buff++ = a;
@@ -246,7 +234,7 @@ namespace psxt
 
 						if (a == -1 || a == '\'')
 						{
-							s = 255; type = TTYPE_SQSTRING;
+							s = 255; type = Token::Type::SQSTRING;
 						}
 						else
 							*buff++ = a;
@@ -258,7 +246,7 @@ namespace psxt
 
 						if (a == -1 || a == '\"')
 						{
-							s = 255; type = TTYPE_DQSTRING;
+							s = 255; type = Token::Type::DQSTRING;
 						}
 						else
 							*buff++ = a;
@@ -268,7 +256,7 @@ namespace psxt
 					case 11: // Block contents.
 						if (a == -1 || a == '}')
 						{
-							s = 255; type = TTYPE_BLOCK;
+							s = 255; type = Token::Type::BLOCK;
 						}
 						else
 							*buff++ = a;
@@ -306,7 +294,7 @@ namespace psxt
 				lastch = a;
 			}
 
-			if (a == -1 && type == TTYPE_UNKNOWN)
+			if (a == -1 && type == Token::Type::UNKNOWN)
 				return false;
 
 			*buff++ = '\0';
@@ -319,7 +307,7 @@ namespace psxt
 		/**
 		**	Returns an injected token with the specified data.
 		*/
-		Token *buildToken(int type, const char *value)
+		Token *buildToken (Token::Type type, const char *value)
 		{
 			tempToken->set(value, type, line, col);
 			return new Token (tempToken);

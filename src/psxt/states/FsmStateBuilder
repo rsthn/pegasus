@@ -1,36 +1,29 @@
-/*
-**	psxt::FsmStateBuilder
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+//violet: comments
 
-#include <psxt/states/FsmState.h>
+#ifndef __FSMSTATEBUILDER_H
+#define __FSMSTATEBUILDER_H
+
+#include "FsmState"
 
 namespace psxt
 {	
 	/**
-	**	The responsibility of this class is to convert itemsets into finite-state-machine states.
-	*/
+	 * @brief The responsibility of this class is to convert itemsets into finite-state-machine states.
+	 */
 
 	class FsmStateBuilder
 	{
 		protected:
 
 		/**
-		**	Prints an error message and returns the value of 1.
-		*/
+		 * @brief Prints an error message and returns the value of 1.
+		 * 
+		 * @param token 
+		 * @param code 
+		 * @param msg 
+		 * @param ... 
+		 * @return int 
+		 */
 		static int errmsg (Token *token, int code, const char *msg, ...)
 		{
 			va_list args;
@@ -49,9 +42,15 @@ namespace psxt
 		}
 
 		/**
-		**	Builds an FSM state from an itemset, adds it to the completed list and returns it.
-		*/
-		static FsmState *build (Context *context, int section, ItemSet *root, List<FsmState*> *completed)
+		 * @brief Builds an FSM state from an itemset, adds it to the completed list and returns it.
+		 * 
+		 * @param context Global context.
+		 * @param section Section ID.
+		 * @param root Initial itemset.
+		 * @param completed Output state list.
+		 * @return FsmState* 
+		 */
+		static FsmState *build (Context *context, Context::SectionType section, ItemSet *root, List<FsmState*> *completed)
 		{
 			FsmState *state = completed->get(root->getId());
 			if (state != nullptr) return state;
@@ -61,14 +60,13 @@ namespace psxt
 
 			if (completed->head() == nullptr || completed->head()->value->getId() > state->getId())
 			{
-				completed->unshift (state);
+				completed->unshift(state);
 			}
 			else
 			{
 				for (Linkable<FsmState*> *i = completed->tail(); i; i = i->prev())
 				{
-					if (i->value->getId() < state->getId())
-					{
+					if (i->value->getId() < state->getId()) {
 						completed->insertAfter (i, state);
 						break;
 					}
@@ -81,8 +79,7 @@ namespace psxt
 				Token *elem = i->value->getElem();
 
 				// Reduction.
-				if (elem == nullptr)
-				{
+				if (elem == nullptr) {
 					state->addAction (new FsmState::ReduceAction (i->value));
 					continue;
 				}
@@ -90,7 +87,7 @@ namespace psxt
 				FsmState *nextState = build (context, section, i->value->getTransition(), completed);
 
 				// Shift or Goto.
-				if (elem->getType() == TTYPE_IDENTIFIER)
+				if (elem->getType() == Token::Type::IDENTIFIER)
 				{
 					// Goto.
 					NonTerminal *nonterm = context->getNonTerminal (section, elem->getValue());
@@ -104,7 +101,7 @@ namespace psxt
 					// Shift.
 					else
 					{
-						if (section == SECTION_LEXICON || !context->getExports(section-1)->contains(elem->getValue(), elem->getValue()->getHash()))
+						if (section == Context::SectionType::LEXICON || !context->getExports(section-1)->contains(elem->getValue(), elem->getValue()->getHash()))
 						{
 							errmsg (elem, E_UNDEF_NONTERM, elem->getCstr());
 						}
@@ -135,20 +132,20 @@ namespace psxt
 			if (state->getShiftActions() == nullptr && reductions->length() == 1)
 				return state;
 
-			// Single reduction with shifts, verify if look-aheads collide with the shifts.
+			// Single reduction with shifts, verify if lookaheads collide with the shifts.
 			if (state->getShiftActions() != nullptr && reductions->length() == 1)
 			{
 				Linkable<FsmState::ShiftAction*> *i;
 
-printf ("NEED TO CHECK FOR STATE %u (ITEM SIGNATURE=%s)\n", state->getId(), root->getSignature()->c_str());
+/* printf ("NEED TO CHECK FOR STATE %u (ITEM SIGNATURE=%s)\n", state->getId(), root->getSignature()->c_str());
 root->dump(stdout);
 printf ("\nREACH SET:\n");
 auto rs = root->getReachSet();
 if (rs == nullptr) printf("\nUNABLE TO GET REACH SET\n"); else rs->dump(stdout);
 printf ("\n\n");
-return state;
-				List<Pair<Token*, ItemSet*>*> *tmp = nullptr;
-				// TODO use this: reductions->head()->value->item->getFollow();
+return state; */
+				//List<Pair<Token*, ItemSet*>*> *tmp = ????????
+				auto tmp = reductions->head()->value->getFollow();
 
 				for (i = state->getShiftActions()->head(); i; i = i->next())
 				{
@@ -157,7 +154,7 @@ return state;
 				}
 
 				// If no collision occurs, the single reduction will be a fallback when shifts fail.
-				if (i == nullptr || section == SECTION_LEXICON)
+				if (i == nullptr || section == Context::SectionType::LEXICON)
 					return state;
 
 				errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
@@ -166,20 +163,21 @@ return state;
 				return state;
 			}
 
+printf("MODE-X\n");
+			// Multiple reductions, lookaheads required.
+
 			// Lexicon section does not support lookaheads. Only single reductions must be present.
-			if (section == SECTION_LEXICON)
+			if (section == Context::SectionType::LEXICON)
 			{
 				if (reductions->length() > 1)
-				{
 					errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
-				}
 
 				return state;
 			}
 
 			// Load initial follow set of all reductions.
 			for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i; i = i->next())
-				i->value->loadFollow();
+				i->value->getFollow();
 
 			// Verify if a reduction follow symbol collides with a shift symbol.
 			bool err = false;
@@ -190,7 +188,7 @@ return state;
 				{
 					for (Linkable<FsmState::ShiftAction*> *j = state->getShiftActions()->head(); j; j = j->next())
 					{
-						if (i->value->follow->contains (j->value->value))
+						if (i->value->getFollow()->contains (j->value->value))
 						{
 							err = true;
 							break;
@@ -203,7 +201,6 @@ return state;
 			{
 				errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
 				// root->dump (stdout);
-
 				return state;
 			}
 
@@ -214,9 +211,9 @@ return state;
 			{
 				for (Linkable<FsmState::ReduceAction*> *j = i->next(); j && !err; j = j->next())
 				{
-					for (Linkable<Token*> *k = j->value->follow->head(); k; k = k->next())
+					for (Linkable<Token*> *k = j->value->getFollow()->head(); k; k = k->next())
 					{
-						if (i->value->follow->contains (k->value))
+						if (i->value->getFollow()->contains (k->value))
 						{
 							err = true;
 							break;
@@ -229,7 +226,6 @@ return state;
 			{
 				errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
 				// root->dump (stdout);
-
 				return state;
 			}
 
@@ -239,14 +235,14 @@ return state;
 		/**
 		**	Builds a sequence of states for a finite state machine (FSM) from a tree of itemsets.
 		*/
-		public: static List<FsmState*> *build (Context *context, int section, ItemSet *root)
+		public: static List<FsmState*> *build (Context *context, Context::SectionType section, ItemSet *root)
 		{
 			List<FsmState*> *output = new List<FsmState*> ();
-
 			build (context, section, root, output);
-
 			return output;
 		}
 	};
 
 };
+
+#endif

@@ -1,20 +1,11 @@
-/*
-**	psxt::FsmState
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+// violet:comments
+
+#ifndef __FSMSTATE_H
+#define __FSMSTATE_H
+
+#include <asr/utils/String>
+#include <asr/utils/Linkable>
+#include "../Integer"
 
 namespace psxt
 {
@@ -23,16 +14,15 @@ namespace psxt
 	using asr::utils::Linkable;
 
 	/**
-	**	Describes an state for a finite state machine created specifically for parsing.
-	*/
-
+	 * @brief Describes an state for a finite state machine created specifically for parsing.
+	 */
 	class FsmState
 	{
 		public:
 
 		/**
-		**	Describes a Shift action.
-		*/
+		 * @brief Describes a Shift action.
+		 */
 		struct ShiftAction
 		{
 			Token *value;
@@ -51,8 +41,11 @@ namespace psxt
 			}
 
 			/**
-			**	Compares the key of the shift. The parameter should be a casted token.
-			*/
+			 * @brief Compares the key of the shift. The parameter should be a casted token.
+			 * 
+			 * @param value 
+			 * @return int 
+			 */
 			int compare (Token *value)
 			{
 				return this->value->equals(value, true) ? 0 : 1;
@@ -60,8 +53,8 @@ namespace psxt
 		};
 
 		/**
-		**	Describes a GoTo action.
-		*/
+		 * @brief Describes a GoTo action.
+		 */
 		struct GotoAction
 		{
 			NonTerminal *nonterm;
@@ -74,8 +67,11 @@ namespace psxt
 			}
 
 			/**
-			**	Compares the key of the next state. The parameter should be a casted int.
-			*/
+			 * @brief Compares the key of the next state. The parameter should be a casted int.
+			 * 
+			 * @param value 
+			 * @return int 
+			 */
 			int compare (int value)
 			{
 				return this->nextState->getId() - value;
@@ -83,13 +79,18 @@ namespace psxt
 		};
 
 		/**
-		**	Describes a Reduce action.
-		*/
+		 * @brief Describes a Reduce action.
+		 */
 		struct ReduceAction
 		{
+			private:
+
+				List<Token*> *follow;
+				Item *item;
+
+			public:
+
 			ProductionRule *rule;
-			List<Token*> *follow;
-			Item *item;
 
 			ReduceAction(Item *item)
 			{
@@ -98,19 +99,28 @@ namespace psxt
 				this->item = item;
 			}
 
-			void loadFollow ()
+			/**
+			 * @brief Returns `true` if the follow set is present in the reduction.
+			 * @return bool 
+			 */
+			bool hasFollow() {
+				return this->follow != nullptr;
+			}
+
+			/**
+			 * @brief Returns the follow-set of the reduction.
+			 * @return List<Token*> 
+			 */
+			List<Token*> *getFollow()
 			{
-				if (this->follow != nullptr) return;
+				if (this->follow != nullptr)
+					return this->follow;
 
 				this->follow = new List<Token*>();
 
-				// TODO fix
+				printf(">>>>>> %x\n", this->item->getTransition());
 
-				/*for (Linkable<Pair<Token*, ItemSet*>*> *i = this->item->getFollow()->head(); i; i = i->next())
-				{
-					if (!this->follow->kcontains (i->value->a))
-						this->follow->push (i->value->a);
-				}*/
+				return this->follow;
 			}
 
 			~ReduceAction()
@@ -121,8 +131,8 @@ namespace psxt
 		};
 
 		/**
-		**	Describes a Jump action.
-		*/
+		 * @brief Describes a Jump action.
+		 */
 		struct JumpAction
 		{
 			Token *value;
@@ -138,35 +148,36 @@ namespace psxt
 		protected:
 
 		/**
-		**	ID of the state.
-		*/
+		 * @brief ID of the state.
+		 */
 		int id;
 
 		/**
-		**	List of shift actions.
-		*/
+		 * @brief List of shift actions.
+		 */
 		List<ShiftAction*> *shifts;
 
 		/**
-		**	List of goto actions.
-		*/
+		 * @brief List of goto actions.
+		 */
 		List<GotoAction*> *gotos;
 
 		/**
-		**	List of reduce actions.
-		*/
+		 * @brief List of reduce actions.
+		 */
 		List<ReduceAction*> *reductions;
 
 		/**
-		**	List of jump actions.
-		*/
+		 * @brief List of jump actions.
+		 */
 		List<JumpAction*> *jumps;
 
 		public:
 
 		/**
-		**	Initializes the state.
-		*/
+		 * @brief Initializes the state with an ID.
+		 * @param id 
+		 */
 		FsmState (int id)
 		{
 			this->id = id;
@@ -178,54 +189,54 @@ namespace psxt
 		}
 
 		/**
-		**	Destroys the state instance.
-		*/
+		 * @brief Destroys the state and all related shifts, reductions, gotos and jumps.
+		 */
 		virtual ~FsmState ()
 		{
-			if (this->shifts)
-			{
+			if (this->shifts) {
 				this->shifts->clear();
 				delete this->shifts;
 			}
 
-			if (this->reductions)
-			{
+			if (this->reductions) {
 				this->reductions->clear();
 				delete this->reductions;
 			}
 
-			if (this->gotos)
-			{
+			if (this->gotos) {
 				this->gotos->clear();
 				delete this->gotos;
 			}
 
-			if (this->jumps)
-			{
+			if (this->jumps) {
 				this->jumps->clear();
 				delete this->jumps;
 			}
 		}
 
 		/**
-		**	Returns the ID of the state.
-		*/
-		int getId ()
-		{
+		 * @brief Returns the ID of the state.
+		 * @return int 
+		 */
+		int getId() {
 			return this->id;
 		}
 
 		/**
-		**	Compares the key of the state (ID). The parameter should be a casted int.
-		*/
+		 * @brief Compares the key of the state (ID). The parameter should be a casted int.
+		 * 
+		 * @param value 
+		 * @return int 
+		 */
 		int compare (int value)
 		{
 			return this->id - value;
 		}
 
 		/**
-		**	Adds a shift action to the state.
-		*/
+		 * @brief Adds a shift action to the state.
+		 * @param a 
+		 */
 		void addAction (ShiftAction *a)
 		{
 			if (this->shifts == nullptr)
@@ -235,8 +246,9 @@ namespace psxt
 		}
 
 		/**
-		**	Adds a goto action to the state.
-		*/
+		 * @brief Adds a goto action to the state.
+		 * @param a 
+		 */
 		void addAction (GotoAction *a)
 		{
 			if (this->gotos == nullptr)
@@ -246,8 +258,9 @@ namespace psxt
 		}
 
 		/**
-		**	Adds a reduce action to the state.
-		*/
+		 * @brief Adds a reduce action to the state.
+		 * @param a 
+		 */
 		void addAction (ReduceAction *a)
 		{
 			if (this->reductions == nullptr)
@@ -257,8 +270,9 @@ namespace psxt
 		}
 
 		/**
-		**	Adds a jump action to the state.
-		*/
+		 * @brief Adds a jump action to the state.
+		 * @param a 
+		 */
 		void addAction (JumpAction *a)
 		{
 			if (this->jumps == nullptr)
@@ -268,40 +282,43 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the list of actions.
-		*/
-		List<ShiftAction*> *getShiftActions ()
-		{
+		 * @brief Returns the list of actions.
+		 * @return List<ShiftAction*>* 
+		 */
+		List<ShiftAction*> *getShiftActions() {
 			return this->shifts;
 		}
 
 		/**
-		**	Returns the list of goto actions.
-		*/
-		List<GotoAction*> *getGotoActions ()
-		{
+		 * @brief Returns the list of goto actions.
+		 * @return List<GotoAction*>* 
+		 */
+		List<GotoAction*> *getGotoActions() {
 			return this->gotos;
 		}
 
 		/**
-		**	Returns the list of reduce actions.
-		*/
-		List<ReduceAction*> *getReduceActions ()
-		{
+		 * @brief Returns the list of reduce actions.
+		 * @return List<ReduceAction*>* 
+		 */
+		List<ReduceAction*> *getReduceActions() {
 			return this->reductions;
 		}
 
 		/**
-		**	Returns the list of actions.
-		*/
-		List<JumpAction*> *getJumpActions ()
-		{
+		 * @brief Returns the list of actions.
+		 * @return List<JumpAction*>* 
+		 */
+		List<JumpAction*> *getJumpActions() {
 			return this->jumps;
 		}
 
 		/**
-		**	Dumps a reduction to the specified stream.
-		*/
+		 * @brief Dumps a reduction to the specified stream.
+		 * 
+		 * @param output 
+		 * @param reduce 
+		 */
 		void dump (FILE *output, psxt::FsmState::ReduceAction *reduce)
 		{
 			fprintf (output, "\n  > REDUCE %s#%u", reduce->rule->getNonTerminal()->getName()->c_str(), reduce->rule->getId());
@@ -309,12 +326,12 @@ namespace psxt
 			if (reduce->rule->getVisibility() != 0)
 				fprintf (output, " %s", reduce->rule->getVisibility() == 1 ? "(EXPORT)" : "(IGNORE)");
 
-			if (reduce->follow != nullptr)
+			if (reduce->hasFollow())
 			{
-				for (Linkable<Token*> *i = reduce->follow->head(); i; i = i->next())
+				for (Linkable<Token*> *i = reduce->getFollow()->head(); i; i = i->next())
 				{
 					fprintf (output, "\n    > ON %s%s%s ", 
-						i->value->getType() == TTYPE_EOF ? "(EOF)" : i->value->getCstr(), 
+						i->value->getType() == Token::Type::END ? "(END)" : i->value->getCstr(), 
 						i->value->getNValue() != nullptr ? ":" : "",
 						i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : ""
 					);
@@ -323,8 +340,10 @@ namespace psxt
 		}
 
 		/**
-		**	Dumps the state to the specified stream.
-		*/
+		 * @brief Dumps the state to the specified stream.
+		 * 
+		 * @param output 
+		 */
 		void dump (FILE *output)
 		{
 			fprintf (output, "STATE %u", id);
@@ -353,8 +372,8 @@ namespace psxt
 			{
 				for (Linkable<psxt::FsmState::ShiftAction*> *i = this->shifts->head(); i; i = i->next())
 				{
-					if (i->value->value->getType() == TTYPE_EOF)
-						fprintf (output, "\n  > SHIFT (EOF) -> %u", i->value->nextState->getId());
+					if (i->value->value->getType() == Token::Type::END)
+						fprintf (output, "\n  > SHIFT ε -> %u", i->value->nextState->getId());
 					else
 						fprintf (output, "\n  > SHIFT '%s%s%s' -> %u", i->value->value->getCstr(), 
 							i->value->value->getNValue() != nullptr ? ":" : "",
@@ -368,3 +387,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif

@@ -1,27 +1,13 @@
-/*
-**	psxt::Parser
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+#ifndef __PARSER_H
+#define __PARSER_H
+
+#include "Integer"
 
 namespace psxt
 {
 	/**
-	**	Simple implementation of a syntax parser. This class will obtain tokens from a scanner and compose objects
-	**	lexical and grammatical rules from it.
-	*/
+	 * @brief Simple implementation of a syntax parser. This class will obtain tokens from a scanner and compose objects lexical and grammatical rules from it.
+	 */
 
 	using asr::utils::Integer;
 
@@ -112,13 +98,13 @@ namespace psxt
 
 						for (Linkable<Token*> *k = j->value->getElems()->head(); k; k = k->next())
 						{
-							if (k->value->getType() == TTYPE_EOF)
+							if (k->value->getType() == Token::Type::END)
 								continue;
 
-							if (k->value->getType() == TTYPE_IDENTIFIER && k->value->getValue()->equals(i->value->value->getName()))
+							if (k->value->getType() == Token::Type::IDENTIFIER && k->value->getValue()->equals(i->value->value->getName()))
 								continue;
 
-							if (k->value->getType() != TTYPE_IDENTIFIER)
+							if (k->value->getType() != Token::Type::IDENTIFIER)
 								continue;
 
 							if (nonTermName == nullptr)
@@ -213,13 +199,13 @@ namespace psxt
 					case 0:
 						if (eof) { state = -1; break; }
 
-						if (token->getType() != TTYPE_SYMBOL || token->getChar() != '[')
+						if (token->getType() != Token::Type::SYMBOL || token->getChar() != '[')
 							return errmsg (token, E_EXPECTED_LBRACKET);
 
 						if (!scanner->nextToken())
 							return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_IDENTIFIER)
+						if (token->getType() != Token::Type::IDENTIFIER)
 							return errmsg (token, E_EXPECTED_IDENTIFIER);
 
 						if (!token->getValue()->cequals("lexicon") && !token->getValue()->cequals("grammar") && !token->getValue()->cequals("arrays"))
@@ -230,12 +216,12 @@ namespace psxt
 						if (token->getValue()->cequals("arrays"))
 							state = 9;
 						else
-							stateB = token->getValue()->cequals("lexicon") ? SECTION_LEXICON : SECTION_GRAMMAR;
+							stateB = token->getValue()->cequals("lexicon") ? Context::SectionType::LEXICON : Context::SectionType::GRAMMAR;
 
 						if (!scanner->nextToken())
 							return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SYMBOL || token->getChar() != ']')
+						if (token->getType() != Token::Type::SYMBOL || token->getChar() != ']')
 							return errmsg (token, E_EXPECTED_RBRACKET);
 
 						break;
@@ -244,9 +230,9 @@ namespace psxt
 					case 1:
 						if (eof) { state = -1; break; }
 
-						if (token->getType() != TTYPE_IDENTIFIER)
+						if (token->getType() != Token::Type::IDENTIFIER)
 						{
-							if (token->getType() != TTYPE_SYMBOL)
+							if (token->getType() != Token::Type::SYMBOL)
 								return errmsg (token, E_EXPECTED_IDENTIFIER);
 
 							state = (reuse = 1) - 1;
@@ -263,13 +249,13 @@ namespace psxt
 					case 2:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() == TTYPE_BLOCK)
+						if (token->getType() == Token::Type::BLOCK)
 						{
 							nonterm->setReturnType (LString::alloc(token->getValue()->getString()->trim()->c_str()));
 							break;
 						}
 
-						if (token->getType() != TTYPE_SYMBOL || token->getChar() != ':')
+						if (token->getType() != Token::Type::SYMBOL || token->getChar() != ':')
 							return errmsg (token, E_EXPECTED_COLON, nonterm->getName()->c_str());
 
 						production = new ProductionRule (nonterm->nextId(), nonterm);
@@ -282,13 +268,13 @@ namespace psxt
 					case 3:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() == TTYPE_BLOCK)
+						if (token->getType() == Token::Type::BLOCK)
 						{
 							production->setAction (LString::alloc(token->getValue()->getString()->trim()->c_str()));
 							break;
 						}
 
-						if (token->getType() != TTYPE_SYMBOL || (token->getChar() != '|' && token->getChar() != ';'))
+						if (token->getType() != Token::Type::SYMBOL || (token->getChar() != '|' && token->getChar() != ';'))
 							return errmsg (token, E_MISSING_SEMICOLON, nonterm->getName()->c_str());
 
 						if (token->getChar() == ';')
@@ -307,17 +293,17 @@ namespace psxt
 					case 4:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() == TTYPE_BLOCK)
+						if (token->getType() == Token::Type::BLOCK)
 						{
 							state = reuse = 3;
 							break;
 						}
 
-						if (token->getType() == TTYPE_SYMBOL)
+						if (token->getType() == Token::Type::SYMBOL)
 						{
 							if (token->getChar() == '(')
 							{
-								if (stateB == SECTION_LEXICON)
+								if (stateB == Context::SectionType::LEXICON)
 								{
 									errmsg (token, E_NOT_ALLOWED_VALUE);
 									state = 7;
@@ -335,7 +321,7 @@ namespace psxt
 
 								if (production->getVisibility() == 1)
 								{
-									if (stateB == SECTION_LEXICON)
+									if (stateB == Context::SectionType::LEXICON)
 									{
 										if (production->getElems()->length() == 0)
 											errmsg (token, E_REQUIRED_ELEM, nonterm->getName()->c_str(), production->getId());
@@ -352,20 +338,20 @@ namespace psxt
 
 							if (token->getChar() == '+' || token->getChar() == '-')
 							{
-								production->setVisibility (token->getChar() == '+' ? 1 : 2);
+								production->setVisibility (token->getChar() == '+' ? ProductionRule::Visibility::PUBLIC : ProductionRule::Visibility::PRIVATE);
 								break;
 							}
 
 							return errmsg (token, E_UNEXPECTED_ELEM, token->getCstr(), nonterm->getName()->c_str());
 						}
 
-						if (token->getType() == TTYPE_IDENTIFIER)
+						if (token->getType() == Token::Type::IDENTIFIER)
 						{
-							production->addElem (new Token (token));
+							production->addElem (new Token(token));
 						}
-						else if (token->getType() == TTYPE_SQSTRING || token->getType() == TTYPE_DQSTRING)
+						else if (token->getType() == Token::Type::SQSTRING || token->getType() == Token::Type::DQSTRING)
 						{
-							if (stateB == SECTION_LEXICON)
+							if (stateB == Context::SectionType::LEXICON)
 							{
 								if (token->getValue()->charAt(0) != '[' && token->getValue()->length > 1 && token->getValue()->charAt(0) != '\\')
 								{
@@ -375,29 +361,30 @@ namespace psxt
 									{
 										int j = temp[i+1];
 										temp[i+1] = 0;
-										production->addElem (new Token (token, LString::alloc(&temp[i]), false));
+										production->addElem (new Token(token, LString::alloc(&temp[i]), false));
 										temp[i+1] = j;
 									}
 								}
 								else
-									production->addElem (new Token (token));
+									production->addElem (new Token(token));
 							}
 							else
-								production->addElem (new Token (token));
+								production->addElem (new Token(token));
 						}
 						else
 							return errmsg (token, E_UNEXPECTED_ELEM, token->getCstr(), nonterm->getName()->c_str());
 
 						break;
 
-					// Production rule per-element value specifier.
+					// Production rule per-element value specifier. Allowed to appear only in language grammar section, used to
+					// specify the value of a non-terminal (nvalue).
 					case 5:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SQSTRING && token->getType() != TTYPE_DQSTRING)
+						if (token->getType() != Token::Type::SQSTRING && token->getType() != Token::Type::DQSTRING)
 							return errmsg (token, E_EXPECTED_VALUE, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
-						production->addElem ((new Token (token))->setType (TTYPE_NVALUE));
+						production->addElem ((new Token(token))->setType(Token::Type::NVALUE));
 
 						state = 6;
 						break;
@@ -406,7 +393,7 @@ namespace psxt
 					case 6:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SYMBOL && token->getChar() != ')')
+						if (token->getType() != Token::Type::SYMBOL && token->getChar() != ')')
 							return errmsg (token, E_EXPECTED_RPAREN, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						state = 4;
@@ -416,7 +403,7 @@ namespace psxt
 					case 7:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SQSTRING && token->getType() != TTYPE_DQSTRING)
+						if (token->getType() != Token::Type::SQSTRING && token->getType() != Token::Type::DQSTRING)
 							return errmsg (token, E_EXPECTED_VALUE, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						state = 8;
@@ -426,7 +413,7 @@ namespace psxt
 					case 8:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SYMBOL && token->getChar() != ')')
+						if (token->getType() != Token::Type::SYMBOL && token->getChar() != ')')
 							return errmsg (token, E_EXPECTED_RPAREN, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str(), production->getId());
 
 						state = 4;
@@ -436,29 +423,29 @@ namespace psxt
 					case 9:
 						if (eof) { state = -1; break; }
 
-						if (token->getType() == TTYPE_SYMBOL && token->getChar() == '[')
+						if (token->getType() == Token::Type::SYMBOL && token->getChar() == '[')
 						{
 							state = 0; reuse = 1;
 							break;
 						}
 
-						if (token->getType() != TTYPE_IDENTIFIER)
+						if (token->getType() != Token::Type::IDENTIFIER)
 							return errmsg (token, E_EXPECTED_IDENTIFIER);
 
 						// VIOLET:ENSURE NO DUPLICATE
-						nonterm = new NonTerminal (context->nextId(SECTION_LEXICON), token->getValue()->clone());
-						nonterm = context->addNonTerminal (SECTION_ARRAYS, nonterm);
+						nonterm = new NonTerminal (context->nextId(Context::SectionType::LEXICON), token->getValue()->clone());
+						nonterm = context->addNonTerminal (Context::SectionType::ARRAYS, nonterm);
 
 						if (!scanner->nextToken())
 							return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SYMBOL || token->getChar() != '(')
+						if (token->getType() != Token::Type::SYMBOL || token->getChar() != '(')
 							return errmsg (token, E_EXPECTED_LPAREN, nonterm->getName()->c_str());
 
 						if (!scanner->nextToken())
 							return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_IDENTIFIER)
+						if (token->getType() != Token::Type::IDENTIFIER)
 							return errmsg (token, E_EXPECTED_LNONTERM, nonterm->getName()->c_str());
 
 						nonterm->setReturnType (LString::alloc(token->getValue()));
@@ -466,13 +453,13 @@ namespace psxt
 						if (!scanner->nextToken())
 							return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SYMBOL || token->getChar() != ')')
+						if (token->getType() != Token::Type::SYMBOL || token->getChar() != ')')
 							return errmsg (token, E_EXPECTED_RPAREN2, nonterm->getName()->c_str());
 
 						if (!scanner->nextToken())
 							return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() != TTYPE_SYMBOL || token->getChar() != ':')
+						if (token->getType() != Token::Type::SYMBOL || token->getChar() != ':')
 							return errmsg (token, E_EXPECTED_COLON2, nonterm->getName()->c_str());
 
 						production = new ProductionRule (nonterm->nextId(), nonterm);
@@ -483,27 +470,27 @@ namespace psxt
 							if (!scanner->nextToken())
 								return errmsg (token, E_MISSING_SEMICOLON, nonterm->getName()->c_str());
 
-							if (token->getType() == TTYPE_SYMBOL && token->getChar() == ';')
+							if (token->getType() == Token::Type::SYMBOL && token->getChar() == ';')
 								break;
 
-							if (token->getType() != TTYPE_SQSTRING && token->getType() != TTYPE_DQSTRING)
+							if (token->getType() != Token::Type::SQSTRING && token->getType() != Token::Type::DQSTRING)
 								return errmsg (token, E_EXPECTED_ITEM, nonterm->getName()->c_str());
 
 							//VIOLET:DO NOT ALLOW DUPLICATES
-							production->addElem (new Token (token));
+							production->addElem (new Token(token));
 
 							if (!scanner->nextToken())
 								return errmsg (token, E_MISSING_SEMICOLON, nonterm->getName()->c_str());
 
-							if (token->getType() == TTYPE_SYMBOL && token->getChar() == ';')
+							if (token->getType() == Token::Type::SYMBOL && token->getChar() == ';')
 								break;
 
-							if (token->getType() != TTYPE_SYMBOL || token->getChar() != ',')
+							if (token->getType() != Token::Type::SYMBOL || token->getChar() != ',')
 								return errmsg (token, E_EXPECTED_COMMA, production->getElems()->tail()->value->getCstr(), nonterm->getName()->c_str());
 						}
 
 						// VIOLET:ENSURE NO DUPLICATE
-						context->addExport (SECTION_LEXICON, nonterm->getName(), production);
+						context->addExport (Context::SectionType::LEXICON, nonterm->getName(), production);
 						break;
 				}
 
@@ -515,61 +502,59 @@ namespace psxt
 
 			Linkable<Pair<LString*, NonTerminal*>*> *pair;
 
-			pair = context->getNonTerminalPairs(SECTION_LEXICON)->head();
+			pair = context->getNonTerminalPairs(Context::SectionType::LEXICON)->head();
 			if (pair != nullptr && !(finished & 1))
 			{
 				for (Linkable<ProductionRule*> *i = pair->value->value->getRules()->head(); i; i = i->next())
 				{
 					if (i->value->getVisibility() != 0) continue;
 
-					if (i->value->getElems()->length() == 0)
-					{
-						i->value->setVisibility (2);
+					if (i->value->getElems()->length() == 0) {
+						i->value->setVisibility (ProductionRule::Visibility::PRIVATE);
 					}
-					else
-					{
-						context->addExport (SECTION_LEXICON, i->value->getElems()->head()->value->getValue(), i->value);
-						i->value->setVisibility (1);
+					else {
+						context->addExport (Context::SectionType::LEXICON, i->value->getElems()->head()->value->getValue(), i->value);
+						i->value->setVisibility (ProductionRule::Visibility::PUBLIC);
 					}
 				}
 
 				nonterm = new NonTerminal (0, LString::alloc("__start__"));
-				context->addNonTerminal (SECTION_LEXICON, nonterm);
+				context->addNonTerminal (Context::SectionType::LEXICON, nonterm);
 
-					temp = new NonTerminal (context->nextId (SECTION_LEXICON), LString::alloc("__tokens"));
-					context->addNonTerminal (SECTION_LEXICON, temp);
-
-					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
-					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, "__tokens"));
-					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->key)->c_str()));
+					temp = new NonTerminal (context->nextId (Context::SectionType::LEXICON), LString::alloc("__tokens"));
+					context->addNonTerminal (Context::SectionType::LEXICON, temp);
 
 					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
-					production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->key)->c_str()));
+					production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, "__tokens"));
+					production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
+
+					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
+					production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
 
 				nonterm->addRule (production = new ProductionRule (nonterm->nextId(), nonterm));
-				production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, "__tokens"));
-				production->addElem (scanner->buildToken (TTYPE_EOF, ""));
+				production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, "__tokens"));
+				production->addElem (scanner->buildToken (Token::Type::END, ""));
 
 				nonterm->addRule (production = new ProductionRule (nonterm->nextId(), nonterm));
-				production->addElem (scanner->buildToken (TTYPE_EOF, ""));
+				production->addElem (scanner->buildToken (Token::Type::END, ""));
 
 				finished |= 1;
 			}
 
-			pair = context->getNonTerminalPairs(SECTION_GRAMMAR)->head();
+			pair = context->getNonTerminalPairs(Context::SectionType::GRAMMAR)->head();
 			if (pair != nullptr && !(finished & 2))
 			{
 				nonterm = new NonTerminal (0, LString::alloc("__start__"));
-				context->addNonTerminal (SECTION_GRAMMAR, nonterm);
+				context->addNonTerminal (Context::SectionType::GRAMMAR, nonterm);
 
 				nonterm->addRule (production = new ProductionRule (nonterm->nextId(), nonterm));
-				production->addElem (scanner->buildToken (TTYPE_IDENTIFIER, (pair->value->key)->c_str()));
-				production->addElem (scanner->buildToken (TTYPE_EOF, ""));
+				production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
+				production->addElem (scanner->buildToken (Token::Type::END, ""));
 				production->setAction (LString::alloc("$0"));
 
 				finished |= 2;
 
-				if (!ensureTypeConsistency(SECTION_GRAMMAR))
+				if (!ensureTypeConsistency(Context::SectionType::GRAMMAR))
 					return 2;
 			}
 
@@ -577,3 +562,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif

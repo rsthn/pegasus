@@ -52,5 +52,5 @@ namespace psxt
 	#define E_REDUCE_REDUCE			8402, "(State %c%u) Reduce/Reduce conflict found"
 	#define	E_SHIFT_REDUCE			8403, "(State %c%u) Shift/Reduce conflict found"
 
-	#define	SECTION_CODE(x)			(x == SECTION_GRAMMAR ? 'G' : 'L')
+	#define	SECTION_CODE(x)			(x == Context::SectionType::GRAMMAR ? 'G' : 'L')
 };

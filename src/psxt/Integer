@@ -1,0 +1,52 @@
+#ifndef __INTEGER_H
+#define __INTEGER_H
+
+#include <ctype.h>
+#include <stdarg.h>
+#include <stdio.h>
+
+namespace asr {
+namespace utils {
+
+	/**
+	 * @brief Describes a simple integer value.
+	 */
+
+	class Integer
+	{
+		public:
+
+		/**
+		 * @brief Value of the integer.
+		 */
+		int value;
+
+		/**
+		 * @brief Construct a new Integer object.
+		 * @param value 
+		 */
+		Integer (int value=0) {
+			this->value = value;
+		}
+
+		/**
+		 * @brief Compares against the specified integer object.
+		 * @param value 
+		 * @return bool 
+		 */
+		bool equals (Integer *value) {
+			return value->value == this->value;
+		}
+
+		/**
+		 * @brief Compares against the specified value.
+		 * @param value 
+		 * @return bool 
+		 */
+		bool compare (int value) {
+			return this->value == value;
+		}
+	};
+}};
+
+#endif

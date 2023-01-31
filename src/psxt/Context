@@ -1,25 +1,10 @@
-/*
-**	psxt::Context
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+#ifndef __CONTEXT_H
+#define __CONTEXT_H
 
 #include <asr/utils/Pair>
 
-#include <psxt/ProductionRule.h>
-#include <psxt/NonTerminal.h>
+#include "ProductionRule"
+#include "NonTerminal"
 
 namespace psxt
 {
@@ -29,54 +14,53 @@ namespace psxt
 	class ReachSet;
 
 	/**
-	**	Sets of non-terminals.
-	*/
-	#define SECTION_NULL		-1
-	#define	SECTION_LEXICON		0
-	#define	SECTION_GRAMMAR		1
-	#define SECTION_ARRAYS		2
-	#define	SECTION_COUNT		3
-
-	/**
-	**	Describes the global source file context. That is all the grammar and lexicon in the syntax file.
-	*/
-
+	 * @brief Describes the global source file context. That is all the grammar and lexicon in the syntax file.
+	 */
 	class Context
 	{
+		public:
+
+		/**
+		 * @brief Type of sections.
+		 */
+		enum SectionType {
+			LEXICON, GRAMMAR, ARRAYS, END
+		};
+
 		protected:
 
 		/**
-		**	Sections for non-terminals.
-		*/
-		LList<Pair<LString*, NonTerminal*>*> *sections[SECTION_COUNT];
+		 * @brief Sections for non-terminals.
+		 */
+		LList<Pair<LString*, NonTerminal*>*> *sections[SectionType::END];
 
 		/**
-		**	Exported symbols on each section.
-		*/
-		LList<Pair<LString*, ProductionRule*>*> *exports[SECTION_COUNT];
+		 * @brief Exported symbols on each section.
+		 */
+		LList<Pair<LString*, ProductionRule*>*> *exports[SectionType::END];
 
 		/**
-		**	Next available ID for a nonterminal in a section.
-		*/
-		int availableId[SECTION_COUNT];
+		 * @brief Next available ID for a non-terminal in a section.
+		 */
+		int availableId[SectionType::END];
 
 		/**
-		**	Map with the global reach-sets.
-		*/
+		 * @brief Map with the global reach sets.
+		 */
 		LList<Pair<LString*, ReachSet*>*> *reachSets;
 		LList<Pair<LString*, ReachSet*>*> *reachSets_deletable;
 
 		public:
 
 		/**
-		**	Initializes the context.
-		*/
+		 * @brief Constructs a new Context object.
+		 */
 		Context ()
 		{
 			reachSets = new LList<Pair<LString*, ReachSet*>*> ();
 			reachSets_deletable = new LList<Pair<LString*, ReachSet*>*> ();
 
-			for (int i = 0; i < SECTION_COUNT; i++)
+			for (int i = 0; i < SectionType::END; i++)
 			{
 				sections[i] = new LList<Pair<LString*, NonTerminal*>*> ();
 				exports[i] = new LList<Pair<LString*, ProductionRule*>*> ();
@@ -86,36 +70,31 @@ namespace psxt
 		}
 
 		/**
-		**	Destructor.
-		*/
+		 * @brief Destroys the Context object.
+		 */
 		virtual ~Context ()
 		{
-			for (int j = 0; j < SECTION_COUNT; j++)
+			for (int j = 0; j < SectionType::END; j++)
 			{
-				for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->head(); i; i = i->next())
-				{
+				for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->head(); i; i = i->next()) {
 					i->value->key->free();
 					delete i->value;
 				}
 
 				for (Linkable<Pair<LString*, ProductionRule*>*> *i = exports[j]->head(); i; i = i->next())
-				{
 					delete i->value->reset();
-				}
 
 				delete exports[j]->reset();
 				delete sections[j]->reset();
 			}
 
 			/* ** */
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets_deletable->head(); i; i = i->next())
-			{
+			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets_deletable->head(); i; i = i->next()) {
 				i->value->key->free();
 				delete i->value;
 			}
 
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->head(); i; i = i->next())
-			{
+			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->head(); i; i = i->next()) {
 				i->value->key->free();
 				i->value->value = nullptr;
 				delete i->value;
@@ -126,22 +105,26 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the next available ID for a non-terminal on the specified section.
-		*/
+		 * @brief Returns the next available ID for a non-terminal on the specified section.
+		 * @param section ID of the section where the identifier should be allocated.
+		 * @return int
+		 */
 		int nextId (int section)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return 0;
 
 			return availableId[section]++;
 		}
 
 		/**
-		**	Returns the definition of non-terminals in a section.
-		*/
+		 * @brief Returns the definition of all the non-terminals in a section.
+		 * @param section Section ID.
+		 * @return List<NonTerminal*>* 
+		 */
 		List<NonTerminal*> *getNonTerminals (int section)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			List<NonTerminal*> *list = new List<NonTerminal*> ();
@@ -153,27 +136,32 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the definition of non-terminals in a section as a list of pairs.
-		*/
+		 * @brief Returns the definition of all the non-terminals in a section as a list of pairs.
+		 * @param section Section ID.
+		 * @return LList<Pair<LString*, NonTerminal*>*>* 
+		 */
 		LList<Pair<LString*, NonTerminal*>*> *getNonTerminalPairs (int section)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			return sections[section];
 		}
 
 		/**
-		**	Returns the reach sets list.
-		*/
+		 * @brief Returns the list of reach sets.
+		 * @return LList<Pair<LString*, ReachSet*>*>* 
+		 */
 		LList<Pair<LString*, ReachSet*>*> *getReachSets ()
 		{
 			return this->reachSets;
 		}
 
 		/**
-		**	Returns the reach sets list.
-		*/
+		 * @brief Returns a reach set given its name.
+		 * @param name VIOLET
+		 * @return ReachSet* 
+		 */
 		ReachSet *getReachSet (LString *name)
 		{
 			Pair<LString*, ReachSet*> *value = this->reachSets->get (name, name->getHash());
@@ -181,8 +169,12 @@ namespace psxt
 		}
 
 		/**
-		**	Adds an exported production rule to the section's export list.
-		*/
+		 * @brief Adds an exported production rule to the section's export list.
+		 * @param name VIOLET
+		 * @param set VIOLET
+		 * @param is_deletable VIOLET
+		 * @return ReachSet* 
+		 */
 		ReachSet *addReachSet (LString *name, ReachSet *set, bool is_deletable)
 		{
 			if (is_deletable)
@@ -193,22 +185,28 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the list of exports on a section.
-		*/
+		 * @brief Returns the list of exports in a section.
+		 * @param section Section ID.
+		 * @return LList<Pair<LString*, ProductionRule*>*>* 
+		 */
 		LList<Pair<LString*, ProductionRule*>*> *getExports (int section)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			return exports[section];
 		}
 
 		/**
-		**	Adds an exported production rule to the section's export list.
-		*/
+		 * @brief Adds an exported production rule to the section's export list.
+		 * @param section Section ID.
+		 * @param name Public name.
+		 * @param rule Production rule to export.
+		 * @return ProductionRule* 
+		 */
 		ProductionRule *addExport (int section, LString *name, ProductionRule *rule)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			exports[section]->push (new Pair<LString*, ProductionRule*> (name, rule));
@@ -216,11 +214,14 @@ namespace psxt
 		}
 
 		/**
-		**	Adds a non-terminal to a section.
-		*/
+		 * @brief Adds a non-terminal to a section.
+		 * @param section Section ID.
+		 * @param nonterm Non-terminal to add.
+		 * @return NonTerminal* 
+		 */
 		NonTerminal *addNonTerminal (int section, NonTerminal *nonterm)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			NonTerminal *tmp = getNonTerminal (section, nonterm->getName());
@@ -235,11 +236,14 @@ namespace psxt
 		}
 
 		/**
-		**	Searches and returns a non-terminal in a section given its name.
-		*/
+		 * @brief Searches a non-terminal by name and returns it.
+		 * @param section Section ID.
+		 * @param name Name of the non-terminal.
+		 * @return NonTerminal* 
+		 */
 		NonTerminal *getNonTerminal (int section, LString *name)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			Pair<LString*, NonTerminal*> *pair = sections[section]->get (name, name->getHash());
@@ -247,11 +251,14 @@ namespace psxt
 		}
 
 		/**
-		**	Returns a non-terminal in a section given its ID.
-		*/
+		 * @brief Returns the non-terminal given its ID.
+		 * @param section Section ID.
+		 * @param id Non-terminal ID.
+		 * @return NonTerminal* 
+		 */
 		NonTerminal *getNonTerminal (int section, int id)
 		{
-			if (section < 0 || section >= SECTION_COUNT)
+			if (section < 0 || section >= SectionType::END)
 				return nullptr;
 
 			Linkable<Pair<LString*, NonTerminal*>*> *i = sections[section]->head();
@@ -263,3 +270,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif

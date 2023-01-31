@@ -1,20 +1,3 @@
-/*
-**	psxt::ItemSet
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
 
 namespace psxt
 {
@@ -26,49 +9,49 @@ namespace psxt
 	ReachSet *ReachSet_buildFromItemSet (ItemSet *itemset, int offset, Context *context);
 
 	/**
-	**	Describes an Item Set.
-	*/
+	 * @brief Describes an ItemSet.
+	 */
 
 	class ItemSet
 	{
 		protected:
 
 		/**
-		**	ID of the item set.
-		*/
+		 * @brief ID of the itemset.
+		 */
 		int id;
 
 		/**
-		**	List with one or more items.
-		*/
+		 * @brief List with one or more items.
+		 */
 		List<Item*> *list;
 
 		/**
-		**	All parents of the itemset. Usually should be only one, however when an itemset is recycled it
-		**	may have several paths that lead to it.
-		*/
+		 * @brief All parents of the itemset. Usually should be only one, however when an itemset is recycled it may have several paths that lead to it.
+		 */
 		List<ItemSet*> *parents;
 
 		/**
-		**	Hash code of the item set. Set internally after the set is closed.
-		*/
+		 * @brief Hash code of the itemset. Set internally after the set is closed.
+		 */
 		uint32_t hash;
 
 		/**
-		**	Signature of the itemset. Set using buildSignature().
-		*/
+		 * @brief Signature of the itemset. Set using buildSignature().
+		 */
 		LString *signature;
 
 		/**
-		**	Reach set of the item set. Generated after the itemset is closed.
-		*/
+		 * @brief Reach set of the itemset. Generated after the itemset is closed.
+		 */
 		ReachSet *reachSet;
 
 		public:
 
 		/**
-		**	Constructs an empty item set.
-		*/
+		 * @brief Constructs an empty itemset.
+		 * @param id 
+		 */
 		ItemSet (int id=0)
 		{
 			this->id = id;
@@ -80,8 +63,8 @@ namespace psxt
 		}
 
 		/**
-		**	Destroys the item set.
-		*/
+		 * @brief Destroy the itemset and all items.
+		 */
 		virtual ~ItemSet()
 		{
 			delete list->clear();
@@ -91,72 +74,74 @@ namespace psxt
 				this->signature->free();
 		}
 
+		public:
+
 		/**
-		**	Sets the ID of the item set.
-		*/
-		public: void setId (int id)
-		{
+		 * @brief Sets the ID of the itemset.
+		 * @param id 
+		 */
+		void setId (int id) {
 			this->id = id;
 		}
 
 		/**
-		**	Returns the ID of the item set.
-		*/
-		int getId()
-		{
+		 * @brief Returns the ID of the itemset.
+		 * @return int 
+		 */
+		int getId() const {
 			return this->id;
 		}
 
 		/**
-		**	Returns the signature of the item set.
-		*/
-		LString *getSignature()
-		{
+		 * @brief Returns the signature of the itemset.
+		 * @return LString* 
+		 */
+		LString *getSignature() const {
 			return this->signature;
 		}
 
 		/**
-		**	Returns the hash code of the item set.
-		*/
-		uint32_t getHash()
-		{
+		 * @brief Returns the hash code of the itemset.
+		 * @return uint32_t 
+		 */
+		uint32_t getHash() const {
 			return this->hash;
 		}
 
 		/**
-		**	Returns the reach set of the item set.
-		*/
-		ReachSet *getReachSet()
-		{
+		 * @brief Returns the reach set of the itemset.
+		 * @return ReachSet* 
+		 */
+		ReachSet *getReachSet() {
 			return this->reachSet;
 		}
 
 		/**
-		**	Adds a parent to the itemset.
-		*/
-		void addParent (ItemSet *parent)
-		{
+		 * @brief Adds a parent reference to the itemset.
+		 * @param parent 
+		 */
+		void addParent (ItemSet *parent) {
 			this->parents->push (parent);
 		}
 
 		/**
-		**	Returns all parents of the itemset.
-		*/
-		List<ItemSet*> *getParents()
-		{
+		 * @brief Returns all parents of the itemset.
+		 * @return List<ItemSet*>* 
+		 */
+		List<ItemSet*> *getParents() {
 			return this->parents;
 		}
 
 		/**
-		**	Returns the item list.
-		*/
-		List<Item*> *getItems()
-		{
+		 * @brief Returns the item list.
+		 * @return List<Item*>* 
+		 */
+		List<Item*> *getItems() {
 			return this->list;
 		}
 
 		/**
-		**	Compares the item sets and returns a boolean indicating if they're equal or not.
+		**	Compares the itemsets and returns a boolean indicating if they're equal or not.
 		*/
 		bool equals (ItemSet *item)
 		{
@@ -177,24 +162,23 @@ namespace psxt
 		}
 
 		/**
-		**	Compares the key of the item set (ID). The parameter should be a casted int.
+		**	Compares the key of the itemset (ID). The parameter should be a casted int.
 		*/
-		int compare (int value)
-		{
+		int compare (int value) {
 			return this->id - value;
 		}
 
-		int compare (ItemSet *item)
-		{
+		int compare (ItemSet *item) {
 			return equals(item) ? 0 : 1;
 		}
 
 		/**
-		**	Returns true if the specified item is contained in the set.
-		*/
-		bool contains (Item *item)
-		{
-			return this->list->contains (item);
+		 * @brief Returns true if the specified item is contained in the itemset.
+		 * @param item 
+		 * @return bool 
+		 */
+		bool contains (Item *item) {
+			return this->list->contains(item);
 		}
 
 		/**
@@ -215,8 +199,7 @@ namespace psxt
 					addItem (item);
 			}
 
-			~Group ()
-			{
+			~Group() {
 				delete this->items->reset();
 				delete charset;
 			}
@@ -238,16 +221,17 @@ namespace psxt
 				}
 			}
 
-			int compare (CharSet *val)
-			{
+			int compare (CharSet *val) {
 				return this->charset->equals ((CharSet *)val) ? 0 : 1;
 			}
 		};
 
+		public:
+
 		/**
-		**	Detects common pattern strings in the specified input and introduces new rules if necessary.
-		*/
-		public: void factorize()
+		 * @brief Detects common pattern strings and introduces new rules if necessary.
+		 */
+		void factorize()
 		{
 			Linkable<Item*> *ni;
 
@@ -261,7 +245,7 @@ namespace psxt
 				if (i->value->getElem() == nullptr)
 					continue;
 
-				if (i->value->getElem()->getType() != TTYPE_SQSTRING && i->value->getElem()->getType() != TTYPE_DQSTRING)
+				if (i->value->getElem()->getType() != Token::Type::SQSTRING && i->value->getElem()->getType() != Token::Type::DQSTRING)
 					continue;
 
 				list->push (new Group (new CharSet (i->value->getElem()->getValue()), i->value));
@@ -347,9 +331,9 @@ namespace psxt
 		}
 
 		/**
-		**	Adds all rules of a non-terminal to the item set. Each production will be converted to an item
-		**	before adding it to the itemset.
-		*/
+		 * @brief Adds all rules of a non-terminal to the itemset. Each production will be converted to an item before adding it.
+		 * @param nonterm 
+		 */
 		void addNonTerminal (NonTerminal *nonterm)
 		{
 			if (!nonterm) return;
@@ -363,10 +347,10 @@ namespace psxt
 				else
 					item->set (i->value);
 
-				if (this->contains (item))
+				if (this->contains(item))
 					continue;
 
-				this->list->push (item);
+				this->list->push(item);
 				item = nullptr;
 			}
 
@@ -374,13 +358,13 @@ namespace psxt
 		}
 
 		/**
-		**	Adds an item to the itemset.
-		*/
+		 * @brief Adds an item to the itemset.
+		 * @param item 
+		 * @return bool 
+		 */
 		bool addItem (Item *item)
 		{
-			if (item == nullptr) return false;
-
-			if (this->contains (item))
+			if (item == nullptr || this->contains(item))
 				return false;
 
 			this->list->push (item);
@@ -388,8 +372,8 @@ namespace psxt
 		}
 
 		/**
-		**	Builds and sets the signature of the itemset.
-		*/
+		 * @brief Builds and sets the signature of the itemset.
+		 */
 		void buildSignature()
 		{
 			static char buffer[8192];
@@ -435,10 +419,11 @@ namespace psxt
 		}
 
 		/**
-		**	Closes the item set. A grammar context and a section is required in order to obtain any required
-		**	non-terminal definition.
-		*/
-		void close (Context *context, int section)
+		 * @brief Closes the itemset. A context and a section is required in order to obtain any required non-terminal definitions.
+		 * @param context Global context.
+		 * @param section Section ID.
+		 */
+		void close (Context *context, Context::SectionType section)
 		{
 			buildSignature();
 
@@ -447,13 +432,13 @@ namespace psxt
 				if (i->value->getElem() == nullptr)
 					continue;
 
-				if (i->value->getElem()->getType() != TTYPE_IDENTIFIER)
+				if (i->value->getElem()->getType() != Token::Type::IDENTIFIER)
 					continue;
 
 				addNonTerminal (i->value->getElem()->getNonTerminal());
 			}
 
-			if (section == SECTION_LEXICON)
+			if (section == Context::SectionType::LEXICON)
 				this->factorize();
 
 			hash = 0;
@@ -462,13 +447,17 @@ namespace psxt
 				hash += i->value->getHash();
 		}
 
-		// VIOLET
-		void xxx (Context *context, int section)
+		/**
+		 * @brief Creates the reach set of the itemset.
+		 * @param context Global context.
+		 * @param section Section ID.
+		 */
+		void createReachSet (Context *context, Context::SectionType section)
 		{
-			if (section == SECTION_GRAMMAR)
+			if (section == Context::SectionType::GRAMMAR)
 				this->reachSet = ReachSet_buildFromItemSet (this, 0, context);
 
-			if (section == SECTION_LEXICON)
+			if (section == Context::SectionType::LEXICON)
 			{
 				printf ("--- BUILDING REACHSET FOR %u ---\n", id);
 				this->reachSet = ReachSet_buildFromItemSet (this, 0, context);
@@ -476,41 +465,41 @@ namespace psxt
 		}
 
 		/**
-		**	Rewires the items in the itemset such that all currently wired to oldv will now be wired to newv.
-		*/
-		void rewire (ItemSet *oldv, ItemSet *newv)
+		 * @brief Rewires the items in the itemset such that all currently wired to oldv will now be wired to newv.
+		 * @param oldItemSet 
+		 * @param newItemSet 
+		 */
+		void rewire (ItemSet *oldItemSet, ItemSet *newItemSet)
 		{
 			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
-			{
-				i->value->rewire (oldv, newv);
-			}
+				i->value->rewire (oldItemSet, newItemSet);
 		}
 
 		/**
-		**	Returns the ID of an item set.
-		*/
-		static int __getId (ItemSet *val)
-		{
-			return val->getId();
-		}
-
-		/**
-		**	Dumps the item set to the specified stream.
-		*/
+		 * @brief Dumps the itemset to the specified stream.
+		 * @param output 
+		 */
 		void dump (FILE *output)
 		{
-			fprintf (output, "ITEMSET %u", id);
+			fprintf(output, "ITEMSET %u", id);
 
-			for (Linkable<ItemSet*> *i = this->parents->head(); i; i = i->next())
-				fprintf (output, " [%u]", i->value->getId());
+			if (this->parents->length() != 0) {
+				fprintf(output, " <");
+
+				for (Linkable<ItemSet*> *i = this->parents->head(); i; i = i->next()) {
+					fprintf(output, "%s%u", i->prev() ? "," : "", i->value->getId());
+				}
+
+				fprintf(output, ">");
+			}
 
 			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
-				fprintf (output, "\n  > [%u] ", i->value->getTransition() ? i->value->getTransition()->getId() : 0);
-				i->value->dump (output, &__getId);
+				fprintf(output, "\n  > [%u] ", i->value->getTransition() ? i->value->getTransition()->getId() : 0);
+				i->value->dump (output);
 			}
 
-			fprintf (output, "\n\n");
+			fprintf(output, "\n\n");
 		}
 	};
 };

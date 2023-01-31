@@ -1,0 +1,16 @@
+
+[lexicon]
+
+	token
+		:	identifier
+		|	-blanks
+		;
+
+	blanks
+		:	"[\r\n\t\s]"
+		;
+
+	identifier
+		:	identifier "[a-zA-Z0-9]"
+		|	"[a-zA-Z0-9]"
+		;

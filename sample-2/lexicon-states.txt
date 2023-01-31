@@ -1,0 +1,45 @@
+STATE 1
+  > GOTO 2 ON __tokens
+  > GOTO 4 ON token
+  > GOTO 5 ON identifier
+  > GOTO 6 ON blanks
+  > SHIFT ε -> 3
+  > SHIFT '[0-9A-Za-z]' -> 7
+  > SHIFT '[\x09\x0a\x0d\x20]' -> 8
+
+STATE 2
+  > GOTO 10 ON token
+  > GOTO 5 ON identifier
+  > GOTO 6 ON blanks
+  > SHIFT ε -> 9
+  > SHIFT '[0-9A-Za-z]' -> 7
+  > SHIFT '[\x09\x0a\x0d\x20]' -> 8
+
+STATE 3
+  > REDUCE __start__#2
+
+STATE 4
+  > REDUCE __tokens#2
+
+STATE 5
+  > REDUCE token#1 (EXPORT)
+  > SHIFT '[0-9A-Za-z]' -> 11
+
+STATE 6
+  > REDUCE token#2 (IGNORE)
+
+STATE 7
+  > REDUCE identifier#2
+
+STATE 8
+  > REDUCE blanks#1
+
+STATE 9
+  > REDUCE __start__#1
+
+STATE 10
+  > REDUCE __tokens#1
+
+STATE 11
+  > REDUCE identifier#1
+

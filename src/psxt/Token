@@ -1,20 +1,11 @@
-/*
-**	psxt::Token
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+//VIOLET comments
+
+#ifndef __TOKEN_H
+#define __TOKEN_H
+
+#include <asr/utils/String>
+#include <asr/utils/Linkable>
+#include "LString"
 
 namespace psxt
 {
@@ -24,49 +15,74 @@ namespace psxt
 	class NonTerminal;
 
 	/**
-	**	Describes a token, that is a string obtained from a source file that belongs to a certain group which gives it meaning.
-	*/
-
+	 * @brief Describes a token, that is a string obtained from a source file that belongs to a certain group which gives it meaning.
+	 */
 	class Token
 	{
+		public:
+
+		/**
+		 * @brief Token types.
+		 */
+		enum Type
+		{
+			INVALID=0,
+			IDENTIFIER=1,
+			NUMBER=2,
+			SQSTRING=3,
+			DQSTRING=4,
+			SYMBOL=5,
+
+			NVALUE=6,
+			BLOCK=7,
+
+			END=0x70,
+			UNKNOWN
+		};
+
 		protected:
 
 		/**
-		**	String value of the token.
-		*/
+		 * @brief String value of the token.
+		 */
 		LString *value;
 
 		/**
-		**	Type of the token.
-		*/
-		int type;
+		 * @brief Type of the token.
+		 */
+		Type type;
 
 		/**
-		**	Source of the token.
-		*/
+		 * @brief Source of the token.
+		 */
 		String *source;
 
 		/**
-		**	Linked NVALUE of the element (if any).
-		*/
+		 * @brief Linked NValue of the element (if any).
+		 */
 		Token *nvalue;
 
 		/**
-		**	Non-Terminal related to this token.
-		*/
+		 * @brief Non-terminal where the token belongs.
+		 */
 		NonTerminal *nonterm;
 
 		/**
-		**	Line number and column number where the token appears in the source file.
-		*/
-		unsigned line, col;
+		 * @brief Line number where the token appears in the source file.
+		 */
+		unsigned line;
+
+		/**
+		 * @brief Column number where the token appears in the source file.
+		 */
+		unsigned col;
 
 		public:
 
 		/**
 		**	Initializes the token object with the specified parameters.
 		*/
-		Token (String *source, const char *value="", int type=0, int line=0, int col=0)
+		Token (String *source, const char *value="", Type type=Type::INVALID, int line=0, int col=0)
 		{
 			this->value = LString::alloc(value);
 			this->type = type;
@@ -155,108 +171,116 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the string value of the token.
-		*/
-		LString *getValue ()
-		{
+		 * @brief Returns the string value of the token.
+		 * @return LString* 
+		 */
+		LString *getValue() {
 			return this->value;
 		}
 
 		/**
-		**	Returns the value of the token as a character.
-		*/
-		int getChar ()
-		{
+		 * @brief Returns the value of the token as a single character.
+		 * @return int 
+		 */
+		int getChar() {
 			return this->value->getValue()[0];
 		}
 
 		/**
-		**	Returns a C-style string of the token's value.
-		*/
-		const char *getCstr ()
+		 * @brief Returns a C-style string of the token's value.
+		 * @return const char* 
+		 */
+		const char *getCstr()
 		{
 			return this->value->c_str();
 		}
 
 		/**
-		**	Sets the type of the token.
-		*/
-		Token *setType (int type)
-		{
+		 * @brief Sets the type of the token.
+		 * @return Token* 
+		 */
+		Token *setType (Type type) {
 			this->type = type;
 			return this;
 		}
 
 		/**
-		**	Returns the token type.
-		*/
-		int getType ()
-		{
+		 * @brief Returns the type of the token.
+		 * @return Type
+		 */
+		Type getType() {
 			return this->type;
 		}
 
 		/**
-		**	Sets the NValue of the token.
-		*/
-		Token *setNValue (Token *nvalue)
-		{
+		 * @brief Sets the non-terminal value (NValue) related to the token.
+		 * @param nvalue 
+		 * @return Token* 
+		 */
+		Token *setNValue (Token *nvalue) {
 			this->nvalue = nvalue;
 			return this;
 		}
 
 		/**
-		**	Returns the NValue of the token (if any).
-		*/
-		Token *getNValue ()
-		{
+		 * @brief Returns the NValue of the token (if any).
+		 * @return Token* 
+		 */
+		Token *getNValue() {
 			return this->nvalue;
 		}
 
 		/**
-		**	Sets the non-terminal of the token.
-		*/
-		Token *setNonTerminal (NonTerminal *nonterm)
-		{
+		 * @brief Sets the non-terminal of the token.
+		 * @param nonterm
+		 * @return Token*
+		 */
+		Token *setNonTerminal (NonTerminal *nonterm) {
 			this->nonterm = nonterm;
 			return this;
 		}
 
 		/**
-		**	Returns the nonterminal of the token.
-		*/
-		NonTerminal *getNonTerminal ()
-		{
+		 * @brief Returns the non-terminal of the token.
+		 * @return NonTerminal*
+		 */
+		NonTerminal *getNonTerminal() {
 			return this->nonterm;
 		}
 
 		/**
-		**	Returns the source of the token.
-		*/
-		String *getSource ()
-		{
+		 * @brief Returns the source of the token.
+		 * @return String* 
+		 */
+		String *getSource() {
 			return this->source;
 		}
 
 		/**
-		**	Returns the column number where the token appears in the source file.
-		*/
-		int getCol ()
-		{
+		 * @brief Returns the column number where the token appears in the source file.
+		 * @return int 
+		 */
+		int getCol() {
 			return this->col;
 		}
 
 		/**
-		**	Returns the line number where the token appears in the source file.
-		*/
-		int getLine ()
-		{
+		 * @brief Returns the line number where the token appears in the source file.
+		 * @return int 
+		 */
+		int getLine() {
 			return this->line;
 		}
 
 		/**
-		**	Sets the attributes of the token.
-		*/
-		void set (const char *value, int type, int line, int col)
+		 * @brief Sets the attributes of the token.
+		 * 
+		 * @param value String value.
+		 * @param type Type of the token.
+		 * @param line Line number.
+		 * @param col Column number.
+		 */
+		void set (const char *value, Type type, int line, int col)
 		{
 			if (this->value != nullptr)
 				this->value->free();
@@ -269,3 +293,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif
