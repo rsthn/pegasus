@@ -13,7 +13,7 @@
 #include "../CharSet"
 #include "Item.h"
 #include "ItemSet.h"
-#include "ReachSet.h"
+#include "ReachSet"
 
 namespace psxt
 {	

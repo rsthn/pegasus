@@ -1,0 +1,74 @@
+#ifndef __REACHPATH_H
+#define __REACHPATH_H
+
+#include <asr/utils/List>
+#include <asr/utils/Linkable>
+
+#include "ReachNode"
+#include "ReachElement"
+
+namespace psxt
+{
+	using asr::utils::List;
+	using asr::utils::Linkable;
+
+	/**
+	 * @brief Describes a path composed of zero or more nodes.
+	 */
+	class ReachPath : public ReachNode
+	{
+		protected:
+
+		/**
+		 * @brief Nodes in the path.
+		 */
+		List<ReachNode*> *list;
+
+		/**
+		 * @brief Destroys the reach path.
+		 */
+		virtual ~ReachPath()
+		{
+			for (auto i = this->list->head(); i; i = i->next())
+				i->value->destroy();
+
+			delete this->list->reset();
+		}
+
+		public:
+
+		/**
+		 * @brief Constructs an empty reach path.
+		 */
+		ReachPath() : ReachNode(ReachNode::Type::PATH) {
+			this->list = new List<ReachNode*>();
+		}
+
+		/**
+		 * @brief Adds a node to the path.
+		 * @param node 
+		 */
+		void addNode (ReachNode *node) {
+			this->list->push (node->getReference());
+		}
+
+		/**
+		 * @brief Builds a reach path for a specified production rule given its first element node.
+		 * WARNING: Elements must be bound to their respective non-terminals (ItemSetBuilder::bindTokenNTRefs).
+		 * 
+		 * @param elem First element of the production rule.
+		 * @param context Global context.
+		 * @return ReachPath* 
+		 */
+		static ReachPath *buildFromRule (Linkable<Token*> *elem, Context *context);
+
+		/**
+		 * @brief Dumps the node to the specified output stream.
+		 * @param outputStream 
+		 */
+		virtual void dump (FILE *outputStream);
+	};
+
+};
+
+#endif

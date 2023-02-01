@@ -1,0 +1,54 @@
+#ifndef __REACHEND_H
+#define __REACHEND_H
+
+namespace psxt
+{
+
+	/**
+	 * @brief Builds a reach path for a specified production rule given its first element node.
+	 * WARNING: Elements must be bound to their respective non-terminals (ItemSetBuilder::bindTokenNTRefs).
+	 * 
+	 * @param elem First element of the production rule.
+	 * @param context Global context.
+	 * @return ReachPath* 
+	 */
+	ReachPath *ReachPath::buildFromRule (Linkable<Token*> *elem, Context *context)
+	{
+		ReachPath *path = new ReachPath();
+
+		for (auto i = elem; i; i = i->next())
+		{
+			if (i->value->getNonTerminal() != nullptr)
+				path->addNode (ReachSet::buildFromNonTerminal(i->value->getNonTerminal(), context));
+			else
+				path->addNode (new ReachElement (i->value));
+		}
+
+		return path;
+	}
+
+	/**
+	 * @brief Dumps the node to the specified output stream.
+	 * @param outputStream 
+	 */
+	void ReachPath::dump (FILE *os)
+	{
+		fprintf (os, "[");
+
+		for (Linkable<ReachNode*> *i = this->list->head(); i; i = i->next())
+		{
+			if (i->value->getNodeType() == ReachNode::Type::SET && ((ReachSet *)i->value)->getNonTerminal() != nullptr)
+				fprintf (os, "#%s", ((ReachSet *)i->value)->getNonTerminal()->getName()->c_str());
+			else
+				i->value->dump(os);
+
+			if (i->next() != nullptr)
+				fprintf (os, ", ");
+		}
+
+		fprintf (os, "]");
+	}
+
+};
+
+#endif

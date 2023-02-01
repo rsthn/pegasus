@@ -15,7 +15,8 @@ namespace psxt
 	using asr::utils::LList;
 	using asr::utils::Linkable;
 
-	int count0=0, count1=0, count2=0, count3=0;
+	// violet: remove this crap
+	int xxx=0, count0=0, count1=0, count2=0, count3=0;
 
 	/**
 	**	Implementation of a pooLed string, that is, a string whose value can be found uniquely in a pool. This allows
@@ -170,47 +171,43 @@ namespace psxt
 		*/
 		void free ()
 		{
-			if (--refCount == 0)
-				delete this;
+			refCount--;
+			if (refCount < 0) printf("[WARN] Attempting to release already dead LString (%d).\n", refCount);
+			if (refCount == 0) delete this;
 		}
 
 		/**
 		**	Closes the string.
 		*/
-		LString *clone()
-		{
+		LString *clone() {
 			return LString::alloc(this);
 		}
 
 		/**
 		**	Returns the underlying string object.
 		*/
-		String *getString()
-		{
+		String *getString() {
 			return this->string;
 		}
 
 		/**
 		**	Returns the buffer of the string.
 		*/
-		const char *getValue()
-		{
+		const char *getValue() {
 			return this->string->value;
 		}
 
 		/**
 		**	Returns a zero-terminated string representing the string object.
 		*/
-		const char *c_str()
-		{
+		const char *c_str() {
 			return this->string->c_str();
 		}
 
 		/**
 		**	Returns a single character at the specified index.
 		*/
-		int charAt (int index)
-		{
+		int charAt (int index) {
 			return this->string->charAt(index);
 		}
 
@@ -230,29 +227,25 @@ namespace psxt
 		/**
 		**	Returns the hash code of the string.
 		*/
-		uint32_t getHash ()
-		{
+		uint32_t getHash() {
 			return this->hash;
 		}
 
 		/**
 		**	Compares if the string objects are the same (reference comparison).
 		*/
-		bool equals (LString *value)
-		{
+		bool equals (LString *value) {
 			return this == value;
 		}
 
 		/**
 		**	Compares strings by reference.
 		*/
-		int compare (const char *value)
-		{
+		int compare (const char *value) {
 			return cequals(value) ? 0 : 1;
 		}
 
-		int compare (LString *value)
-		{
+		int compare (LString *value) {
 			return this - value;
 		}
 	};

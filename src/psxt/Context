@@ -12,6 +12,8 @@ namespace psxt
 	using asr::utils::LList;
 
 	class ReachSet;
+	class ReachNode;
+	void ReachNode__destroy (ReachNode *node);
 
 	/**
 	 * @brief Describes the global source file context. That is all the grammar and lexicon in the syntax file.
@@ -48,7 +50,6 @@ namespace psxt
 		 * @brief Map with the global reach sets.
 		 */
 		LList<Pair<LString*, ReachSet*>*> *reachSets;
-		LList<Pair<LString*, ReachSet*>*> *reachSets_deletable;
 
 		public:
 
@@ -58,7 +59,6 @@ namespace psxt
 		Context ()
 		{
 			reachSets = new LList<Pair<LString*, ReachSet*>*> ();
-			reachSets_deletable = new LList<Pair<LString*, ReachSet*>*> ();
 
 			for (int i = 0; i < SectionType::END; i++)
 			{
@@ -89,19 +89,7 @@ namespace psxt
 			}
 
 			/* ** */
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets_deletable->head(); i; i = i->next()) {
-				i->value->key->free();
-				delete i->value;
-			}
-
-			for (Linkable<Pair<LString*, ReachSet*>*> *i = reachSets->head(); i; i = i->next()) {
-				i->value->key->free();
-				i->value->value = nullptr;
-				delete i->value;
-			}
-
-			delete reachSets_deletable->reset();
-			delete reachSets->reset();
+			delete reachSets->clear();
 		}
 
 		/**
@@ -172,14 +160,10 @@ namespace psxt
 		 * @brief Adds an exported production rule to the section's export list.
 		 * @param name VIOLET
 		 * @param set VIOLET
-		 * @param is_deletable VIOLET
 		 * @return ReachSet* 
 		 */
-		ReachSet *addReachSet (LString *name, ReachSet *set, bool is_deletable)
+		ReachSet *addReachSet (LString *name, ReachSet *set)
 		{
-			if (is_deletable)
-				this->reachSets_deletable->push (new Pair<LString*, ReachSet*> (name, set));
-
 			this->reachSets->push (new Pair<LString*, ReachSet*> (name, set));
 			return set;
 		}

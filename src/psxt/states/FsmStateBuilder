@@ -137,15 +137,10 @@ namespace psxt
 			{
 				Linkable<FsmState::ShiftAction*> *i;
 
-/* printf ("NEED TO CHECK FOR STATE %u (ITEM SIGNATURE=%s)\n", state->getId(), root->getSignature()->c_str());
+printf ("NEED TO CHECK FOR STATE %u (ITEM SIGNATURE=%s)\n", state->getId(), root->getSignature()->c_str());
 root->dump(stdout);
-printf ("\nREACH SET:\n");
-auto rs = root->getReachSet();
-if (rs == nullptr) printf("\nUNABLE TO GET REACH SET\n"); else rs->dump(stdout);
-printf ("\n\n");
-return state; */
-				//List<Pair<Token*, ItemSet*>*> *tmp = ????????
-				auto tmp = reductions->head()->value->getFollow();
+
+				auto tmp = reductions->first()->getFollow();
 
 				for (i = state->getShiftActions()->head(); i; i = i->next())
 				{
@@ -158,12 +153,10 @@ return state; */
 					return state;
 
 				errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
-				// root->dump (stdout);
-
 				return state;
 			}
 
-printf("MODE-X\n");
+printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 			// Multiple reductions, lookaheads required.
 
 			// Lexicon section does not support lookaheads. Only single reductions must be present.
@@ -232,10 +225,17 @@ printf("MODE-X\n");
 			return state;
 		}
 
+		public:
+
 		/**
-		**	Builds a sequence of states for a finite state machine (FSM) from a tree of itemsets.
-		*/
-		public: static List<FsmState*> *build (Context *context, Context::SectionType section, ItemSet *root)
+		 * @brief Builds a sequence of states for a finite state machine (FSM) from a tree of itemsets.
+		 * 
+		 * @param context Global context. 
+		 * @param section Section ID.
+		 * @param root Initial itemset.
+		 * @return List<FsmState*>* 
+		 */
+		static List<FsmState*> *build (Context *context, Context::SectionType section, ItemSet *root)
 		{
 			List<FsmState*> *output = new List<FsmState*> ();
 			build (context, section, root, output);

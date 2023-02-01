@@ -1,3 +1,5 @@
+#ifndef __ITEMSET_H
+#define __ITEMSET_H
 
 namespace psxt
 {
@@ -6,7 +8,7 @@ namespace psxt
 	using asr::utils::Triad;
 
 	// Forward declarations.
-	ReachSet *ReachSet_buildFromItemSet (ItemSet *itemset, int offset, Context *context);
+	ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context, int offset=0);
 
 	/**
 	 * @brief Describes an ItemSet.
@@ -69,6 +71,9 @@ namespace psxt
 		{
 			delete list->clear();
 			delete parents->reset();
+
+			if (this->reachSet != nullptr)
+				ReachNode__destroy ((ReachNode*)this->reachSet);
 
 			if (this->signature != nullptr)
 				this->signature->free();
@@ -455,12 +460,15 @@ namespace psxt
 		void createReachSet (Context *context, Context::SectionType section)
 		{
 			if (section == Context::SectionType::GRAMMAR)
-				this->reachSet = ReachSet_buildFromItemSet (this, 0, context);
+			{
+				printf ("--- [GRAMMAR] BUILDING REACHSET FOR %u ---\n", id);
+				this->reachSet = ReachSet__buildFromItemSet (this, context);
+			}
 
 			if (section == Context::SectionType::LEXICON)
 			{
-				printf ("--- BUILDING REACHSET FOR %u ---\n", id);
-				this->reachSet = ReachSet_buildFromItemSet (this, 0, context);
+				printf ("--- [LEXICON] BUILDING REACHSET FOR %u ---\n", id);
+				this->reachSet = ReachSet__buildFromItemSet (this, context);
 			}
 		}
 
@@ -503,3 +511,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif
