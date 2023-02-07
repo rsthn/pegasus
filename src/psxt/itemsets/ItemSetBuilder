@@ -59,7 +59,7 @@ namespace psxt
 		/**
 		 * @brief Binds all tokens that reference a non-terminal name to its respective non-terminal object.
 		 */
-		static void bindTokenNTRefs (Context *context, int section)
+		static void bindTokenNTRefs (Context *context, Context::SectionType section)
 		{
 			for (Linkable<Pair<LString*, NonTerminal*>*> *n = context->getNonTerminalPairs(section)->head(); n; n = n->next())
 			{
@@ -139,11 +139,14 @@ namespace psxt
 					tqueue->push (nextItemset);
 				}
 
-				ItemSet *temp = itemsets->get(itemset);
-				if (temp != nullptr)
+				ItemSet *existingItemset = itemsets->get(itemset);
+				if (existingItemset != nullptr)
 				{
-					itemset->getParents()->head()->value->rewire (itemset, temp);
-					temp->addParent (itemset->getParents()->head()->value);
+					if (itemset->getParents()->length() != 1)
+						printf("---------------- HAVE MORE THAN ONE PARENT!!\n");
+
+					itemset->getParents()->first()->rewire (itemset, existingItemset);
+					existingItemset->addParent (itemset->getParents()->first());
 
 					tqueue->clear();
 					delete itemset;
@@ -159,11 +162,9 @@ namespace psxt
 			}
 
 			// Create the reach sets of all item sets.
-			for (auto i = itemsets->head(); i; i = i->next())
-				i->value->createReachSet(context, section);
+			//for (auto i = itemsets->head(); i; i = i->next())
+			//	i->value->createReachSet(context, section);
 
-//TODO used to work this thing
-//printf("LList: Items=%u, Buckets=%u, MaxFill=%u\n", itemsets->length(), itemsets->numBuckets, itemsets->maxFill);
 			delete queue->reset();
 			delete tqueue->reset();
 

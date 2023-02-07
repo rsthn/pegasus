@@ -13,39 +13,44 @@ namespace psxt
 		protected:
 
 		/**
-		**	Internal static buffer for string formatting.
-		*/
+		 * @brief Internal static buffer for string formatting.
+		 */
 		static char buffer[];
 
 		/**
-		**	General context.
-		*/
+		 * @brief General context.
+		 */
 		Context *context;
 
 		/**
-		**	Output stream currently used to write data.
-		*/
+		 * @brief Output stream currently used to write data.
+		 */
 		FILE *os;
 
 		/**
-		**	Sets the default output stream for the generator.
-		*/
+		 * @brief Sets the default output stream for the generator.
+		 * @param output 
+		 */
 		void setOutputStream (FILE *output)
 		{
 			this->os = output;
 		}
 
 		/**
-		**	Writes the given buffer to the output stream.
-		*/
+		 * @brief Writes the given buffer to the output stream.
+		 * @param data 
+		 * @param length 
+		 */
 		void write (const char *data, int length = -1)
 		{
 			fwrite (data, 1, length != -1 ? length : strlen(data), os);
 		}
 
 		/**
-		**	Executes a printf into the output stream.
-		*/
+		 * @brief Executes a printf to the output stream.
+		 * @param msg 
+		 * @param ... 
+		 */
 		void writef (const char *msg, ...)
 		{
 			va_list args;
@@ -56,11 +61,18 @@ namespace psxt
 		}
 
 		/**
-		**	Replaces argument markers ($0, $1, etc) on the given string and writes to the output stream. Returns a list with the markers
-		**	that were not used in the input string. Usually the code generator will add auto-deletion code for all variables that were not
-		**	used, if you use a variable but want to still delete it, use double-dollar instead ($$0, $$1, etc) to force a "unused" flag.
-		*/
-		List<Pair<int, const char*>*> *replaceMarkers (const char *str, int max, int section, ProductionRule *rule, const char *deft)
+		 * @brief Replaces argument markers ($0, $1, etc) on the given string and writes to the output stream. Returns a list with the markers
+		 * that were not used in the input string. Usually the code generator will add auto-deletion code for all variables that were not
+		 * used, if you use a variable but want to still delete it, use double-dollar instead ($$0, $$1, etc) to force a "unused" flag.
+		 * 
+		 * @param str 
+		 * @param max 
+		 * @param section 
+		 * @param rule 
+		 * @param deft 
+		 * @return List<Pair<int, const char*>*>* 
+		 */
+		List<Pair<int, const char*>*> *replaceMarkers (const char *str, int max, Context::SectionType section, ProductionRule *rule, const char *deft)
 		{
 			List<Pair<int, const char*>*> *left = new List<Pair<int, const char*>*> ();
 			int i, m, state = 0;
@@ -164,38 +176,45 @@ namespace psxt
 		}
 
 		/**
-		**	Returns true if the specified type name is a null name.
-		*/
-		bool isNull (const char *s)
+		 * @brief Returns `true` if the specified type name is a `null` name (i.e. null, nullptr or NULL).
+		 * @param typeName 
+		 * @return bool 
+		 */
+		bool isNull (const char *typeName)
 		{
-			if (!strcmp (s, "null")) return true;
-			if (!strcmp (s, "nullptr")) return true;
-			if (!strcmp (s, "NULL")) return true;
+			if (!strcmp (typeName, "null")) return true;
+			if (!strcmp (typeName, "nullptr")) return true;
+			if (!strcmp (typeName, "NULL")) return true;
 
 			return false;
 		}
 
 		/**
-		**	Returns true if the specified type name is a constant pointer.
-		*/
-		bool isConstPtr (const char *s)
+		 * @brief Returns `true` if the specified type name is a constant pointer.
+		 * @param typeName 
+		 * @return bool 
+		 */
+		bool isConstPtr (const char *typeName)
 		{
-			if (!strcmp (s, "null")) return true;
-			if (!strcmp (s, "nullptr")) return true;
-			if (!strcmp (s, "char")) return true;
-			if (!strcmp (s, "short")) return true;
-			if (!strcmp (s, "int")) return true;
-			if (!strcmp (s, "long")) return true;
-			if (!strcmp (s, "float")) return true;
-			if (!strcmp (s, "double")) return true;
+			if (!strcmp (typeName, "null")) return true;
+			if (!strcmp (typeName, "nullptr")) return true;
+			if (!strcmp (typeName, "char")) return true;
+			if (!strcmp (typeName, "short")) return true;
+			if (!strcmp (typeName, "int")) return true;
+			if (!strcmp (typeName, "long")) return true;
+			if (!strcmp (typeName, "float")) return true;
+			if (!strcmp (typeName, "double")) return true;
 
 			return false;
 		}
 
 		/**
-		**	Returns the index of a exported symbol found on the specified section.
-		*/
-		int getExportId (int section, Token *token)
+		 * @brief Returns the index of a exported symbol found in the specified section.
+		 * @param section
+		 * @param token 
+		 * @return int 
+		 */
+		int getExportId (Context::SectionType section, Token *token)
 		{
 			if (token->getType() == Token::Type::END)
 				return -1;
@@ -204,9 +223,12 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the index of a exported symbol found on the specified section.
-		*/
-		int getExportId (int section, LString *name)
+		 * @brief Returns the index of a exported symbol found in the specified section.
+		 * @param section 
+		 * @param name 
+		 * @return int 
+		 */
+		int getExportId (Context::SectionType section, LString *name)
 		{
 			return context->getExports(section)->indexOf(name, name->getHash()) + 256;
 		}
@@ -217,7 +239,7 @@ namespace psxt
 		**	machine, $R which denotes the return value of the state machine, and $E for the section epilogue. Marker $1 is obtained
 		**	by executing generate with a list of states and a section index (method to be overidden by child class).
 		*/
-		void writeTemplate (List<FsmState*> *states, int section, String *name, char *tem, int length)
+		void writeTemplate (List<FsmState*> *states, Context::SectionType section, String *name, char *tem, int length)
 		{
 			char *s, *end = tem + length;
 			LString *tmp;
@@ -226,21 +248,29 @@ namespace psxt
 			{
 				if (*tem != '$') continue;
 
-				write (s, tem - s);
+				write(s, tem - s);
 				s = tem + 2;
 
 				switch (*++tem)
 				{
 					case '0':
-						write (name->c_str());
+						write(name->c_str());
 						break;
 
 					case '1':
-						generate (states, section);
+						generate(states, section);
+						break;
+
+					case '2': {
+						//violet: write enumeration
+						int j = 256;
+						for (auto i = context->getExports(section)->head(); i; i = i->next(), j++)
+							writef("const int %s = %u;\n", i->value->key->c_str(), j);
+						}
 						break;
 
 					case 'E':
-						epilogue (section);
+						epilogue(section);
 						break;
 
 					case 'T':
@@ -304,23 +334,24 @@ namespace psxt
 		**	Generates code for the specified states of a given section and saves it to the specified output. This function should simply determine
 		**	what kind of code template buffer should be used to generate code and used it on a call to writeTemplate.
 		*/
-		virtual void generate (List<FsmState*> *states, int section, FILE *output, String *name) = 0;
+		virtual void generate (List<FsmState*> *states, Context::SectionType section, FILE *output, String *name) = 0;
 
 		/**
 		**	Generates the code of a state machine given its states.
 		*/
-		virtual void generate (List<FsmState*> *states, int section) = 0;
+		virtual void generate (List<FsmState*> *states, Context::SectionType section) = 0;
 
 		/**
 		**	Generates the epilogue code to replace marker $E on the template.
 		*/
-		protected: virtual void epilogue (int section) = 0;
+		protected: virtual void epilogue (Context::SectionType section) = 0;
 	};
 
 	/**
 	**	Internal buffer used by Generator::printf as temporal storage.
 	*/
-	char Generator::buffer[64];
+	char Generator::buffer[1024];
+	// violet: this causes issues!!
 
 };
 

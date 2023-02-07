@@ -47,6 +47,7 @@ namespace utils {
 			return this->value == value;
 		}
 	};
+
 }};
 
 #endif

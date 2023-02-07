@@ -14,7 +14,7 @@
 
 #include "psxt/Scanner.h"
 #include "psxt/Context"
-#include "psxt/Parser.h"
+#include "psxt/Parser"
 #include "psxt/itemsets/ItemSetBuilder"
 #include "psxt/states/FsmStateBuilder"
 
@@ -27,7 +27,7 @@ int main (int argc, char *argv[])
 {
 	List<String*> *sources = new List<String*> ();
 	String *fmt = new String("cpp"), *name = new String(""), *outdir = new String(""), *str;
-	bool dumpStates = false, dumpItemSets = false;
+	bool dumpStates = false, dumpItemSets = false, generateCode = true;
 	const char *suffix;
 
 	printf ("Pegasus v5.00 Copyright (c) 2006-%d RedStar Technologies, All rights reserved.\n", __YEAR__);
@@ -113,14 +113,15 @@ int main (int argc, char *argv[])
 	printf("\n---------\n\n"); */
 
 	// Use the C++ code generator.
-	Generator *gen;
-	gen = new gen::GeneratorCpp (context, suffix);
+	Generator *generator;
+	generator = new gen::GeneratorCpp (context, suffix);
 
-	// ------------------------
+	// ---------------------
+	// Generate the itemsets, FSM states, and code for the scanner.
+
 	LString *initialSymbol = LString::alloc("__start__");
 	int numScannerStates = 0, numParserStates = 0;
 
-	// Generate itemsets for the lexer.
 	LList<ItemSet*> *itemsets = ItemSetBuilder::build (context, Context::SectionType::LEXICON, initialSymbol);
 	if (itemsets != nullptr) {
 		numScannerStates = itemsets->length();
@@ -140,20 +141,24 @@ int main (int argc, char *argv[])
 		fclose(os);
 	}
 
-		//str = outdir->concat("scanner")->append(suffix);
-		//os = fopen (str->c_str(), "wb");
-		//if (os == nullptr) printf ("Crap! Unable to open %s\n", str->c_str()); else printf ("Ready to write %s\n", str->c_str());
-		//gen->generate (states, SECTION_LEXICON, os, name);
-		//fclose (os);
-		//delete str;
+	if (generateCode) {
+		str = outdir->concat("scanner")->append(suffix);
+		FILE *os = fopen(str->c_str(), "wb");
+		if (os != nullptr)  {
+			generator->generate (states, Context::SectionType::LEXICON, os, name);
+			fclose (os);
+		}
+		delete str;
+	}
+
+	// ---------------------
+	// Clean up everything.
+
+	initialSymbol->free();
 
 	delete states;
 	delete itemsets;
-
-	// Cleanup.
-	initialSymbol->free();
-
-	delete gen;
+	delete generator;
 	delete sources;
 	delete context;
 	delete name;
@@ -162,11 +167,17 @@ int main (int argc, char *argv[])
 
 	LString::finish();
 
-	printf ("psxt: Generated %u scanner states, and %u parser states.\n", numScannerStates, numParserStates);
+	if (numScannerStates && numParserStates)
+		printf ("psxt: Generated %u scanner states, and %u parser states.\n", numScannerStates, numParserStates);
+	else if (numScannerStates)
+		printf ("psxt: Generated %u scanner states.\n", numScannerStates);
+	else if (numParserStates)
+		printf ("psxt: Generated %u parser states.\n", numParserStates);
+
 	printf ("psxt: Finished.\n");
 
-	if (asr::memblocks) printf ("Warning: System might be leaking (left %u blocks wandering).\n", asr::memblocks);
+	if (asr::memblocks)
+		printf ("\n\x1B[93mWarning:\x1B[0m Possible memory leak detected, left %u blocks wandering.\n", asr::memblocks);
 
-	printf ("\n");
 	return 0;
 }

@@ -1,51 +1,68 @@
 #ifndef __PARSER_H
 #define __PARSER_H
 
+#include <asr/utils/List>
+
+#include "Context"
 #include "Integer"
 
 namespace psxt
 {
 	/**
-	 * @brief Simple implementation of a syntax parser. This class will obtain tokens from a scanner and compose objects lexical and grammatical rules from it.
+	 * @brief Implementation of the pegasus syntax parser. Obtains tokens from a scanner and composes objects with lexical and grammatical rules.
 	 */
 
 	using asr::utils::Integer;
+	using asr::utils::List;
+	using asr::utils::Linkable;
 
 	class Parser
 	{
 		protected:
 
 		/**
-		**	Compilation unit context.
-		*/
+		 * @brief Compilation unit context.
+		 */
 		Context *context;
 
 		/**
-		**	Indicates if finalization rules have already been added to the context.
-		*/
+		 * @brief Bitwise map that indicates if finalization rules for section S have already been added to the context. Where S is D0 for
+		 * lexicon and D1 for grammar.
+		 */
 		int finished;
+
+		LString *T_TOKEN;
 
 		public:
 
 		/**
-		**	Constructs the parser instance.
-		*/
+		 * @brief Constructs the parser instance.
+		 * @param context 
+		 */
 		Parser (Context *context)
 		{
 			this->context = context;
 			this->finished = 0;
+
+			this->T_TOKEN = LString::alloc("TOKEN");
 		}
 
 		/**
-		**	Destroys the instance of the parser.
-		*/
-		virtual ~Parser ()
-		{
+		 * @brief Destroys the instance of the parser. The context is preserved.
+		 */
+		virtual ~Parser() {
+			this->T_TOKEN->free();
 		}
 
 		/**
-		**	Prints an error message and returns the value of 1.
-		*/
+		 * @brief Prints an error message and returns the value of 1.
+		 * 
+		 * @param token 
+		 * @param code 
+		 * @param msg 
+		 * @param ... 
+		 * @return int 
+		 */
 		int errmsg (Token *token, int code, const char *msg, ...)
 		{
 			va_list args;
@@ -63,10 +80,14 @@ namespace psxt
 			return 1;
 		}
 
+		private:
+
 		/**
-		**	Verifies that all non terminals in the system have consistent return-types.
-		*/
-		private: bool ensureTypeConsistency (int section)
+		 * @brief Verifies that all non-terminals in the section have consistent return types.
+		 * @param section Section ID.
+		 * @return bool 
+		 */
+		bool ensureTypeConsistency (Context::SectionType section)
 		{
 			List<Integer*> *processed = new List<Integer*> ();
 
@@ -98,12 +119,15 @@ namespace psxt
 
 						for (Linkable<Token*> *k = j->value->getElems()->head(); k; k = k->next())
 						{
+							// Skip if END element.
 							if (k->value->getType() == Token::Type::END)
 								continue;
 
+							// Skip if element is a non-terminal and is the same as the current non-terminal.
 							if (k->value->getType() == Token::Type::IDENTIFIER && k->value->getValue()->equals(i->value->value->getName()))
 								continue;
 
+							// Skip if element is not a non-terminal.
 							if (k->value->getType() != Token::Type::IDENTIFIER)
 								continue;
 
@@ -112,13 +136,31 @@ namespace psxt
 								nonTermName = k->value->getValue();
 								continue;
 							}
-
+printf("???????\n");
 							nonTermName = nullptr;
 							break;
 						}
 
 						if (nonTermName == nullptr)
 						{
+							// Default return type for rules in the lexicon section is `TOKEN`.
+							if (section == Context::SectionType::LEXICON) 
+							{
+								if (type == nullptr) type = T_TOKEN;
+								if (!type->equals(T_TOKEN))
+								{
+									errmsg (nullptr, E_INCONSISTENT_TYPE, type->c_str(), T_TOKEN->c_str(), i->value->value->getName()->c_str());
+
+									type = nullptr;
+									value = false;
+
+									processed->push (new Integer (i->value->value->getId()));
+									break;
+								}
+
+								continue;
+							}
+
 							errmsg (nullptr, E_INFER_FAILED, i->value->value->getName()->c_str());
 							value = false;
 
@@ -129,6 +171,11 @@ namespace psxt
 						NonTerminal *nt = context->getNonTerminal(section, nonTermName);
 						if (nt == nullptr)
 						{
+							if (section == Context::SectionType::LEXICON)
+							{
+								printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
+							}
+
 							hasTerminals = true;
 							continue;
 						}
@@ -150,7 +197,9 @@ namespace psxt
 
 						if (!type->equals (nt->getReturnType()))
 						{
-							errmsg ((Token *)(type = nullptr), E_INCONSISTENT_TYPE, i->value->value->getName()->c_str());
+							errmsg (nullptr, E_INCONSISTENT_TYPE, type->c_str(), nt->getReturnType()->c_str(), i->value->value->getName()->c_str());
+
+							type = nullptr;
 							value = false;
 
 							processed->push (new Integer (i->value->value->getId()));
@@ -174,14 +223,19 @@ namespace psxt
 			return value;
 		}
 
-		/**
-		**	Parses the input from the given scanner and combines the data into the parser's context.
-		*/
-		public: int parse (Scanner *scanner)
-		{
-			int i, j, eof = 0, reuse = 0, state = 0, stateB, stateC;
+		public:
 
-			NonTerminal *nonterm, *temp;
+		/**
+		 * @brief Parses the input from the given scanner and combines the data in the context.
+		 * @param scanner 
+		 * @return int 
+		 */
+		int parse (Scanner *scanner)
+		{
+			int i, j, eof = 0, reuse = 0, state = 0, stateC;
+			Context::SectionType stateB;
+
+			NonTerminal *nonterm;
 			ProductionRule *production;
 
 			Token *token = scanner->getToken();
@@ -245,12 +299,11 @@ namespace psxt
 						state = 2;
 						break;
 
-					// First production rule definition.
+					// First production rule definition (found after :).
 					case 2:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() == Token::Type::BLOCK)
-						{
+						if (token->getType() == Token::Type::BLOCK) {
 							nonterm->setReturnType (LString::alloc(token->getValue()->getString()->trim()->c_str()));
 							break;
 						}
@@ -264,12 +317,11 @@ namespace psxt
 						state = 4;
 						break;
 
-					// Alternative production rule definition.
+					// Alternative production rule definition (found after |).
 					case 3:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() == Token::Type::BLOCK)
-						{
+						if (token->getType() == Token::Type::BLOCK) {
 							production->setAction (LString::alloc(token->getValue()->getString()->trim()->c_str()));
 							break;
 						}
@@ -277,8 +329,7 @@ namespace psxt
 						if (token->getType() != Token::Type::SYMBOL || (token->getChar() != '|' && token->getChar() != ';'))
 							return errmsg (token, E_MISSING_SEMICOLON, nonterm->getName()->c_str());
 
-						if (token->getChar() == ';')
-						{
+						if (token->getChar() == ';') {
 							state = 1;
 							break;
 						}
@@ -293,8 +344,7 @@ namespace psxt
 					case 4:
 						if (eof) return errmsg (token, E_UNEXPECTED_EOF);
 
-						if (token->getType() == Token::Type::BLOCK)
-						{
+						if (token->getType() == Token::Type::BLOCK) {
 							state = reuse = 3;
 							break;
 						}
@@ -303,8 +353,7 @@ namespace psxt
 						{
 							if (token->getChar() == '(')
 							{
-								if (stateB == Context::SectionType::LEXICON)
-								{
+								if (stateB == Context::SectionType::LEXICON) {
 									errmsg (token, E_NOT_ALLOWED_VALUE);
 									state = 7;
 								}
@@ -497,14 +546,19 @@ namespace psxt
 				if (state == -1) break;
 			}
 
+			// Stop with error if state is not the correct end state (-1).
 			if (state != -1)
 				return errmsg (token, E_UNEXPECTED_EOF);
 
 			Linkable<Pair<LString*, NonTerminal*>*> *pair;
 
+			// -------------
+			// Execute finalization of the lexicon section.
+
 			pair = context->getNonTerminalPairs(Context::SectionType::LEXICON)->head();
 			if (pair != nullptr && !(finished & 1))
 			{
+				// Register exported non-terminals.
 				for (Linkable<ProductionRule*> *i = pair->value->value->getRules()->head(); i; i = i->next())
 				{
 					if (i->value->getVisibility() != 0) continue;
@@ -518,18 +572,20 @@ namespace psxt
 					}
 				}
 
+				// Create `__tokens` non-terminal to group all the initial non-terminals of the lexicon.
+				NonTerminal *temp = new NonTerminal (context->nextId (Context::SectionType::LEXICON), LString::alloc("__tokens"));
+				context->addNonTerminal (Context::SectionType::LEXICON, temp);
+
+				temp->addRule (production = new ProductionRule (temp->nextId(), temp));
+				production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, "__tokens"));
+				production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
+
+				temp->addRule (production = new ProductionRule (temp->nextId(), temp));
+				production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
+
+				// Create `__start__` non-terminal.
 				nonterm = new NonTerminal (0, LString::alloc("__start__"));
 				context->addNonTerminal (Context::SectionType::LEXICON, nonterm);
-
-					temp = new NonTerminal (context->nextId (Context::SectionType::LEXICON), LString::alloc("__tokens"));
-					context->addNonTerminal (Context::SectionType::LEXICON, temp);
-
-					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
-					production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, "__tokens"));
-					production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
-
-					temp->addRule (production = new ProductionRule (temp->nextId(), temp));
-					production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, (pair->value->key)->c_str()));
 
 				nonterm->addRule (production = new ProductionRule (nonterm->nextId(), nonterm));
 				production->addElem (scanner->buildToken (Token::Type::IDENTIFIER, "__tokens"));
@@ -539,7 +595,13 @@ namespace psxt
 				production->addElem (scanner->buildToken (Token::Type::END, ""));
 
 				finished |= 1;
+
+				if (!ensureTypeConsistency(Context::SectionType::LEXICON))
+					return 2;
 			}
+
+			// -------------
+			// Execute finalization of the grammar section.
 
 			pair = context->getNonTerminalPairs(Context::SectionType::GRAMMAR)->head();
 			if (pair != nullptr && !(finished & 2))

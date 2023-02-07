@@ -8,7 +8,7 @@ namespace psxt
 	using asr::utils::Triad;
 
 	// Forward declarations.
-	ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context, int offset=0);
+	ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context);
 
 	/**
 	 * @brief Describes an ItemSet.
@@ -157,7 +157,7 @@ namespace psxt
 
 			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
-				Item *k = item->getItems()->get (i->value);
+				Item *k = item->getItems()->get(i->value);
 				if (k == nullptr) return false;
 
 				// violet:COMPARE FOLLOW SET
@@ -386,14 +386,14 @@ namespace psxt
 			List<Item*> *list = new List<Item*> ();
 
 			if (this->list->head())
-				list->push (this->list->head()->value);
+				list->push(this->list->first());
 
-			for (Linkable<Item*> *i = this->list->head() ? this->list->head()->next() : nullptr; i; i = i->next())
+			for (auto i = this->list->head() ? this->list->head()->next() : nullptr; i; i = i->next())
 			{
 				uint32_t h = i->value->getHash();
 				bool added = false;
 
-				for (Linkable<Item*> *j = list->head(); j; j = j->next())
+				for (auto j = list->head(); j; j = j->next())
 				{
 					if (h < j->value->getHash())
 					{
@@ -403,16 +403,16 @@ namespace psxt
 					}
 				}
 
-				if (!added) list->push (i->value);
+				if (!added) list->push(i->value);
 			}
 
 			char *buff = buffer;
 			*buff = '\0';
 
-			for (Linkable<Item*> *i = list->head(); i; i = i->next())
+			for (auto i = list->head(); i; i = i->next())
 			{
 				sprintf(buff, "%s%x", i->prev() != nullptr ? ":" : "", i->value->getHash());
-				buff += strlen (buff);
+				buff += strlen(buff);
 			}
 
 			delete list->reset();
@@ -461,19 +461,19 @@ namespace psxt
 		{
 			if (section == Context::SectionType::GRAMMAR)
 			{
-				printf ("--- [GRAMMAR] BUILDING REACHSET FOR %u ---\n", id);
+				printf ("--- [GRAMMAR] REACHSET FOR ITEMSET %u ---\n", id);
 				this->reachSet = ReachSet__buildFromItemSet (this, context);
 			}
 
 			if (section == Context::SectionType::LEXICON)
 			{
-				printf ("--- [LEXICON] BUILDING REACHSET FOR %u ---\n", id);
+				printf ("--- [LEXICON] REACHSET FOR ITEMSET %u ---\n", id);
 				this->reachSet = ReachSet__buildFromItemSet (this, context);
 			}
 		}
 
 		/**
-		 * @brief Rewires the items in the itemset such that all currently wired to oldv will now be wired to newv.
+		 * @brief Rewires the items in the itemset such that all currently linked to oldItemSet will now be linked to newItemSet.
 		 * @param oldItemSet 
 		 * @param newItemSet 
 		 */
@@ -485,29 +485,30 @@ namespace psxt
 
 		/**
 		 * @brief Dumps the itemset to the specified stream.
-		 * @param output 
+		 * @param outputStream
 		 */
-		void dump (FILE *output)
+		void dump (FILE *outputStream)
 		{
-			fprintf(output, "ITEMSET %u", id);
+			fprintf(outputStream, "ITEMSET %u", id);
 
-			if (this->parents->length() != 0) {
-				fprintf(output, " <");
+			if (this->parents->length() != 0)
+			{
+				fprintf(outputStream, " <");
 
 				for (Linkable<ItemSet*> *i = this->parents->head(); i; i = i->next()) {
-					fprintf(output, "%s%u", i->prev() ? "," : "", i->value->getId());
+					fprintf(outputStream, "%s%u", i->prev() ? "," : "", i->value->getId());
 				}
 
-				fprintf(output, ">");
+				fprintf(outputStream, ">");
 			}
 
 			for (Linkable<Item*> *i = this->list->head(); i; i = i->next())
 			{
-				fprintf(output, "\n  > [%u] ", i->value->getTransition() ? i->value->getTransition()->getId() : 0);
-				i->value->dump (output);
+				fprintf(outputStream, "\n   [%u] ", i->value->getTransition() ? i->value->getTransition()->getId() : 0);
+				i->value->dump(outputStream);
 			}
 
-			fprintf(output, "\n\n");
+			fprintf(outputStream, "\n\n");
 		}
 	};
 };

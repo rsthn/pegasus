@@ -16,32 +16,20 @@ namespace gen
 
 	class GeneratorCpp : public Generator
 	{
-		/**
-		**	Temporal charset object used to get characters of a pattern string.
-		*/
-		protected: CharSet *charset;
+		protected:
 
 		/**
-		**	Generates the code of a state machine given its states.
-		*/
-		public: GeneratorCpp (Context *context, const char *&suffix) : Generator(context)
-		{
-			charset = new CharSet ();
-			suffix = ".h";
-		}
+		 * @brief Temporal charset object used to get characters of a pattern string.
+		 */
+		CharSet *charset;
 
 		/**
-		**	Destructor.
-		*/
-		virtual ~GeneratorCpp ()
-		{
-			delete charset;
-		}
-
-		/**
-		**	Writes code for a reduction to the output stream.
-		*/
-		protected: void writeReduction (FsmState::ReduceAction *reduce, int section, const char *nl)
+		 * @brief Writes code for a reduction to the output stream.
+		 * @param reduce 
+		 * @param section 
+		 * @param nl 
+		 */
+		void writeReduction (FsmState::ReduceAction *reduce, Context::SectionType section, const char *nl)
 		{
 			writef ("%s nonterm = %u;", nl, reduce->rule->getNonTerminal()->getId());
 			writef (" release = %u;", reduce->rule->getElems()->length());
@@ -50,22 +38,20 @@ namespace gen
 			if (reduce->rule->getVisibility() == 1)
 				writef (" code = %d;", getExportId (section, reduce->rule->getElems()->head()->value));
 
+			int maxMarkers = reduce->rule->getLength();
+			bool isNull = false;
+
 			if (section == Context::SectionType::LEXICON)
 				return;
-
-			bool isNull = false;
 
 			if (reduce->rule->getNonTerminal()->getReturnType() != nullptr && reduce->rule->getNonTerminal()->getReturnType()->cequals("null"))
 				isNull = true;
 
 			writef (" rule = %u;", reduce->rule->getId());
 			writef (" shifted = %u;", reduce->rule->getLength());
-
 			writef ("%s ", nl);
 
 			if (!isNull) write ("temp = (void *)(");
-
-			int maxMarkers = reduce->rule->getLength();
 
 			List<Pair<int, const char*>*> *left = replaceMarkers (reduce->rule->getAction() ? reduce->rule->getAction()->c_str() : "nullptr", 
 				maxMarkers, section, reduce->rule, "Token *");
@@ -90,9 +76,10 @@ namespace gen
 		}
 
 		/**
-		**	Writes code for a lookahead condition.
-		*/
-		protected: void writeCondition (List<Token*> *list)
+		 * @brief Writes code for a lookahead condition.
+		 * @param list 
+		 */
+		void writeCondition (List<Token*> *list)
 		{
 			for (Linkable<Token*> *i = list->head(); i; i = i->next())
 			{
@@ -106,9 +93,11 @@ namespace gen
 		}
 
 		/**
-		**	Generates code for a state machine.
-		*/
-		protected: virtual void generate (List<FsmState*> *states, int section)
+		 * @brief Generates the code of the finite state machine.
+		 * @param states 
+		 * @param section 
+		 */
+		virtual void generate (List<FsmState*> *states, Context::SectionType section)
 		{
 			const char *nl1 = "\n   ";
 			const char *nl2 = "\n       ";
@@ -233,6 +222,9 @@ namespace gen
 							}
 
 							break;
+
+						default:
+							break;
 					}
 
 					writef ("%s }\n", nl2);
@@ -260,9 +252,10 @@ namespace gen
 		}
 
 		/**
-		**	Generates the epilogue code to replace marker $E on the template.
-		*/
-		virtual void epilogue (int section)
+		 * @brief Generates the epilogue code to replace marker `$E` on the template.
+		 * @param section 
+		 */
+		virtual void epilogue (Context::SectionType section)
 		{
 			if (section != Context::SectionType::LEXICON)
 				return;
@@ -289,13 +282,34 @@ namespace gen
 			writef ("\n%s return token;", nl3);
 		}
 
+		public:
+
 		/**
-		**	Generates code for the specified states of a given section and saves it to the specified output. This function should simply determine
-		**	what kind of code template buffer should be used to generate code and used it on a call to generate/5.
-		*/
-		public: virtual void generate (List<FsmState*> *states, int section, FILE *output, String *name)
+		 * @brief Generates the code of a state machine given its states.
+		 * @param context 
+		 * @param suffix 
+		 */
+		GeneratorCpp (Context *context, const char *&suffix) : Generator(context)
 		{
-			setOutputStream (output);
+			charset = new CharSet();
+			suffix = ".h";
+		}
+
+		/**
+		 * @brief Destroys the generator and related resources.
+		 */
+		virtual ~GeneratorCpp ()
+		{
+			delete charset;
+		}
+
+		/**
+		 * @brief Generates code for the specified states of a given section and saves it to the specified output. This function should simply
+		 * determine what kind of code template buffer should be used to generate code and used it on a call to generate/5.
+		 */
+		virtual void generate (List<FsmState*> *states, Context::SectionType section, FILE *output, String *name)
+		{
+			setOutputStream(output);
 
 			if (section == Context::SectionType::LEXICON)
 				writeTemplate (states, section, name, (char*)&scanner_cpp[0], sizeof(scanner_cpp));

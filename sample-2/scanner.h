@@ -4,8 +4,8 @@
 **	Copyright (c) 2006-2014, RedStar Technologies, All rights reserved.
 */
 
-#ifndef __scanner_$0_h
-#define __scanner_$0_h
+#ifndef __scanner_asx_h
+#define __scanner_asx_h
 
 #include <asr/utils/List>
 #include <asr/utils/Linkable>
@@ -13,7 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 
-namespace $0
+namespace asx
 {
 	using asr::utils::List;
 	using asr::utils::Linkable;
@@ -105,7 +105,11 @@ namespace $0
 	{
 		protected:
 
-$2
+const int keyword = 256;
+const int identifier = 257;
+const int number = 258;
+const int symbol = 259;
+
 
 		/**
 		 * @brief String value of the token.
@@ -419,11 +423,17 @@ $2
 		}
 
 		/**
-		 * @brief Translates a token to an array-token if the token code matches the array composition code.
+		 * @brief Translates a token to an array-token if the token code matches the array composition code. VIOLET
 		 */
 		protected: Token *translate (Token *token)
 		{
-$E
+            if (token->getType() == 257)
+            {
+                if (token->equals("var")) { return token->setType(256); }
+                if (token->equals("all")) { return token->setType(256); }
+            }
+
+            return token;
 		}
 
 		/**
@@ -503,7 +513,135 @@ $E
 					stack[++sp] = state;
 				}
 
-$1
+switch (state)
+{
+    case 1:
+        if (reduce)
+        {
+            switch (nonterm)
+            {
+                case 7: state = 2; break;
+                case 1: state = 4; break;
+                case 3: state = 5; break;
+                case 5: state = 6; break;
+                case 4: state = 7; break;
+                case 2: state = 8; break;
+            }
+
+            reduce = 0;
+            break;
+        }
+
+        switch (symbol)
+        {
+            case -1: state = 3; shift = 1; break;
+            case 65: case 66: case 67: case 68: case 69: case 70: case 71: case 72: case 73: case 74: case 75: case 76: case 77: case 78: case 79: case 80: case 81: case 82: case 83: case 84: case 85: case 86: case 87: case 88: case 89: case 90: case 95: case 97: case 98: case 99: case 100: case 101: case 102: case 103: case 104: case 105: case 106: case 107: case 108: case 109: case 110: case 111: case 112: case 113: case 114: case 115: case 116: case 117: case 118: case 119: case 120: case 121: case 122: state = 9; shift = 1; break;
+            case 48: case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: state = 10; shift = 1; break;
+            case 59: case 61: state = 11; shift = 1; break;
+            case 9: case 10: case 13: case 32: state = 12; shift = 1; break;
+        }
+
+        if (!shift) error = 1;
+        break;
+
+    case 2:
+        if (reduce)
+        {
+            switch (nonterm)
+            {
+                case 1: state = 14; break;
+                case 3: state = 5; break;
+                case 5: state = 6; break;
+                case 4: state = 7; break;
+                case 2: state = 8; break;
+            }
+
+            reduce = 0;
+            break;
+        }
+
+        switch (symbol)
+        {
+            case -1: state = 13; shift = 1; break;
+            case 65: case 66: case 67: case 68: case 69: case 70: case 71: case 72: case 73: case 74: case 75: case 76: case 77: case 78: case 79: case 80: case 81: case 82: case 83: case 84: case 85: case 86: case 87: case 88: case 89: case 90: case 95: case 97: case 98: case 99: case 100: case 101: case 102: case 103: case 104: case 105: case 106: case 107: case 108: case 109: case 110: case 111: case 112: case 113: case 114: case 115: case 116: case 117: case 118: case 119: case 120: case 121: case 122: state = 9; shift = 1; break;
+            case 48: case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: state = 10; shift = 1; break;
+            case 59: case 61: state = 11; shift = 1; break;
+            case 9: case 10: case 13: case 32: state = 12; shift = 1; break;
+        }
+
+        if (!shift) error = 1;
+        break;
+
+    case 3:
+        nonterm = 0; release = 1; reduce = 1;
+        break;
+
+    case 4:
+        nonterm = 7; release = 1; reduce = 1;
+        break;
+
+    case 5:
+        switch (symbol)
+        {
+            case 48: case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: case 65: case 66: case 67: case 68: case 69: case 70: case 71: case 72: case 73: case 74: case 75: case 76: case 77: case 78: case 79: case 80: case 81: case 82: case 83: case 84: case 85: case 86: case 87: case 88: case 89: case 90: case 95: case 97: case 98: case 99: case 100: case 101: case 102: case 103: case 104: case 105: case 106: case 107: case 108: case 109: case 110: case 111: case 112: case 113: case 114: case 115: case 116: case 117: case 118: case 119: case 120: case 121: case 122: state = 15; shift = 1; break;
+        }
+
+        if (shift) break;
+
+        nonterm = 1; release = 1; reduce = 2; code = 257;
+        break;
+
+    case 6:
+        switch (symbol)
+        {
+            case 48: case 49: case 50: case 51: case 52: case 53: case 54: case 55: case 56: case 57: state = 16; shift = 1; break;
+        }
+
+        if (shift) break;
+
+        nonterm = 1; release = 1; reduce = 2; code = 258;
+        break;
+
+    case 7:
+        nonterm = 1; release = 1; reduce = 2; code = 259;
+        break;
+
+    case 8:
+        nonterm = 1; release = 1; reduce = 3;
+        break;
+
+    case 9:
+        nonterm = 3; release = 1; reduce = 1;
+        break;
+
+    case 10:
+        nonterm = 5; release = 1; reduce = 1;
+        break;
+
+    case 11:
+        nonterm = 4; release = 1; reduce = 1;
+        break;
+
+    case 12:
+        nonterm = 2; release = 1; reduce = 1;
+        break;
+
+    case 13:
+        nonterm = 0; release = 2; reduce = 1;
+        break;
+
+    case 14:
+        nonterm = 7; release = 2; reduce = 1;
+        break;
+
+    case 15:
+        nonterm = 3; release = 2; reduce = 1;
+        break;
+
+    case 16:
+        nonterm = 5; release = 2; reduce = 1;
+        break;
+}
 			}
 
 			this->queue->push (new Token (input->getName(), "", 0, -1, _linenum, _colnum));

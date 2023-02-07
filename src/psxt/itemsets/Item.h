@@ -15,48 +15,49 @@ namespace psxt
 		protected:
 
 		/**
-		**	Related production rule.
-		*/
+		 * @brief Related production rule.
+		 */
 		ProductionRule *rule;
 
 		/**
-		**	Element node currently in focus.
-		*/
+		 * @brief Element node currently in focus.
+		 */
 		Linkable<Token*> *elem;
 
 		/**
-		**	Overriden focus element.
-		*/
+		 * @brief Overriden focus element.
+		 */
 		Token *celem;
 
 		/**
-		**	Transition itemset.
-		*/
+		 * @brief Transition itemset.
+		 */
 		ItemSet *transition;
 
 		/**
-		**	Index of the element in focus.
-		*/
+		 * @brief Index of the element in focus.
+		 */
 		int index;
 
 		/**
-		**	Hash code of the item set.
-		*/
+		 * @brief Hash code of the item set.
+		 */
 		uint32_t hash;
 
 		public:
 
 		/**
-		**	Initializes the item and moves the indicator to the first element of the production rule.
-		*/
-		Item (ProductionRule *rule)
-		{
+		 * @brief Initializes the item and sets the focus to the first element in the production rule.
+		 * @param rule 
+		 */
+		Item (ProductionRule *rule) {
 			this->set (rule);
 		}
 
 		/**
-		**	Constructs the item as a clone of the given item.
-		*/
+		 * @brief Constructs the item as a clone of the given one.
+		 * @param item 
+		 */
 		Item (Item *item)
 		{
 			this->rule = item->rule;
@@ -65,21 +66,21 @@ namespace psxt
 
 			this->celem = nullptr;
 			this->transition = nullptr;
-
 			this->updateHash();
 		}
 
 		/**
-		**	Destructor.
-		*/
-		virtual ~Item ()
+		 * @brief Destroys the item.
+		 */
+		virtual ~Item()
 		{
 			if (celem) delete celem;
 		}
 
 		/**
-		**	Initializes the item from a given production rule.
-		*/
+		 * @brief Initializes the item from a given production rule.
+		 * @param rule 
+		 */
 		void set (ProductionRule *rule)
 		{
 			this->rule = rule;
@@ -88,13 +89,12 @@ namespace psxt
 
 			this->celem = nullptr;
 			this->transition = nullptr;
-
 			this->updateHash();
 		}
 
 		/**
-		**	Updates the hash code of the item.
-		*/
+		 * @brief Updates the hash code of the item.
+		 */
 		private: void updateHash ()
 		{
 			hash = this->rule->getNonTerminal()->getId()*1024*1024;
@@ -103,8 +103,8 @@ namespace psxt
 		}
 
 		/**
-		**	Overrides the focus element.
-		*/
+		 * @brief Overrides the focused element.
+		 */
 		public: void overrideElem (LString *value)
 		{
 			if (celem) delete celem;
@@ -113,15 +113,15 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the hash code of the item.
-		*/
-		uint32_t getHash()
-		{
+		 * @brief Returns the hash code of the item.
+		 * @return uint32_t 
+		 */
+		uint32_t getHash() {
 			return this->hash;
 		}
 
 		/**
-		 * @brief Returns the transition itemset.
+		 * @brief Returns the transition itemset or `nullptr` if there is no transition.
 		 * @return ItemSet* 
 		 */
 		ItemSet *getTransition() {
@@ -231,9 +231,9 @@ namespace psxt
 
 		/**
 		 * @brief Dumps the item to the specified stream.
-		 * @param output 
+		 * @param outputStream
 		 */
-		void dump (FILE *output)
+		void dump (FILE *outputStream)
 		{
 			int j = 0;
 
@@ -241,22 +241,22 @@ namespace psxt
 			{
 				if (index == j++)
 				{
-					fprintf(output, "*");
+					fprintf(outputStream, "·");
 
 					if (celem != nullptr) {
-						fprintf(output, "%s ", celem->getCstr());
+						fprintf(outputStream, "%s ", celem->getCstr());
 						continue;
 					}
 				}
 
-				fprintf(output, "%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
+				fprintf(outputStream, "%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
 					i->value->getNValue() != nullptr ? ":" : "",
 					i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : ""
 				);
 			}
 
 			if (index >= rule->getElems()->length())
-				fprintf(output, "* |> %s#%u", rule->getNonTerminal()->getName()->c_str(), rule->getId());
+				fprintf(outputStream, "·↓ %s#%u", rule->getNonTerminal()->getName()->c_str(), rule->getId());
 		}
 	};
 };

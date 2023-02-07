@@ -17,6 +17,14 @@ namespace psxt
 		 */
 		Token *value;
 
+		/**
+		 * @brief Destroys the reach element.
+		 */
+		virtual ~ReachElement()
+		{
+count1--;
+		}
+
 		public:
 
 		/**
@@ -25,6 +33,7 @@ namespace psxt
 		 */
 		ReachElement (Token *value) : ReachNode(ReachNode::Type::ELEMENT) {
 			this->value = value;
+count1++;
 		}
 
 		/**
@@ -50,7 +59,7 @@ namespace psxt
 		virtual void dump (FILE *outputStream)
 		{
 			if (this->value != nullptr)
-				fprintf (outputStream, "%s%s%s", value->getType() == Token::Type::END ? "END" : value->getCstr(), value->getNValue() != nullptr ? ":" : "", value->getNValue() != nullptr ? value->getNValue()->getCstr() : "");
+				fprintf (outputStream, "%s%s%s", value->getType() == Token::Type::END ? "ε" : value->getCstr(), value->getNValue() != nullptr ? ":" : "", value->getNValue() != nullptr ? value->getNValue()->getCstr() : "");
 			else
 				fprintf (outputStream, "@");
 		}

@@ -3,6 +3,8 @@
 
 	token
 		:	identifier
+		|	number
+		|	symbol
 		|	-blanks
 		;
 
@@ -11,6 +13,19 @@
 		;
 
 	identifier
-		:	identifier "[a-zA-Z0-9]"
-		|	"[a-zA-Z0-9]"
+		:	identifier "[a-zA-Z0-9_]"
+		|	"[a-zA-Z_]"
 		;
+
+	symbol
+		:	"[=;]"
+		;
+
+	number
+		:	number "[0-9]"
+		|	"[0-9]"
+		;
+
+[arrays]
+
+	keyword (identifier) : "var", "all";

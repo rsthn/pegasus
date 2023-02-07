@@ -31,22 +31,22 @@ namespace psxt
 	 * @brief Dumps the node to the specified output stream.
 	 * @param outputStream 
 	 */
-	void ReachPath::dump (FILE *os)
+	void ReachPath::dump (FILE *outputStream)
 	{
-		fprintf (os, "[");
+		fprintf (outputStream, "[");
 
 		for (Linkable<ReachNode*> *i = this->list->head(); i; i = i->next())
 		{
 			if (i->value->getNodeType() == ReachNode::Type::SET && ((ReachSet *)i->value)->getNonTerminal() != nullptr)
-				fprintf (os, "#%s", ((ReachSet *)i->value)->getNonTerminal()->getName()->c_str());
+				fprintf (outputStream, "#%s", ((ReachSet *)i->value)->getNonTerminal()->getName()->c_str());
 			else
-				i->value->dump(os);
+				i->value->dump(outputStream);
 
 			if (i->next() != nullptr)
-				fprintf (os, ", ");
+				fprintf (outputStream, ", ");
 		}
 
-		fprintf (os, "]");
+		fprintf (outputStream, "]");
 	}
 
 };

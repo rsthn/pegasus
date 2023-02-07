@@ -173,7 +173,7 @@ namespace psxt
 		 * @param section Section ID.
 		 * @return LList<Pair<LString*, ProductionRule*>*>* 
 		 */
-		LList<Pair<LString*, ProductionRule*>*> *getExports (int section)
+		LList<Pair<LString*, ProductionRule*>*> *getExports (Context::SectionType section)
 		{
 			if (section < 0 || section >= SectionType::END)
 				return nullptr;
@@ -188,7 +188,7 @@ namespace psxt
 		 * @param rule Production rule to export.
 		 * @return ProductionRule* 
 		 */
-		ProductionRule *addExport (int section, LString *name, ProductionRule *rule)
+		ProductionRule *addExport (Context::SectionType section, LString *name, ProductionRule *rule)
 		{
 			if (section < 0 || section >= SectionType::END)
 				return nullptr;
@@ -203,7 +203,7 @@ namespace psxt
 		 * @param nonterm Non-terminal to add.
 		 * @return NonTerminal* 
 		 */
-		NonTerminal *addNonTerminal (int section, NonTerminal *nonterm)
+		NonTerminal *addNonTerminal (Context::SectionType section, NonTerminal *nonterm)
 		{
 			if (section < 0 || section >= SectionType::END)
 				return nullptr;
@@ -225,7 +225,7 @@ namespace psxt
 		 * @param name Name of the non-terminal.
 		 * @return NonTerminal* 
 		 */
-		NonTerminal *getNonTerminal (int section, LString *name)
+		NonTerminal *getNonTerminal (Context::SectionType section, LString *name)
 		{
 			if (section < 0 || section >= SectionType::END)
 				return nullptr;
@@ -240,7 +240,7 @@ namespace psxt
 		 * @param id Non-terminal ID.
 		 * @return NonTerminal* 
 		 */
-		NonTerminal *getNonTerminal (int section, int id)
+		NonTerminal *getNonTerminal (Context::SectionType section, int id)
 		{
 			if (section < 0 || section >= SectionType::END)
 				return nullptr;

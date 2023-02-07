@@ -58,7 +58,7 @@ namespace psxt
 			// Insert new state in ascending order (by id).
 			state = new FsmState (root->getId());
 
-			if (completed->head() == nullptr || completed->head()->value->getId() > state->getId())
+			if (completed->head() == nullptr || completed->first()->getId() > state->getId())
 			{
 				completed->unshift(state);
 			}
@@ -101,7 +101,7 @@ namespace psxt
 					// Shift.
 					else
 					{
-						if (section == Context::SectionType::LEXICON || !context->getExports(section-1)->contains(elem->getValue(), elem->getValue()->getHash()))
+						if (section == Context::SectionType::LEXICON || !context->getExports((Context::SectionType)(section-1))->contains(elem->getValue(), elem->getValue()->getHash()))
 						{
 							errmsg (elem, E_UNDEF_NONTERM, elem->getCstr());
 						}
@@ -132,14 +132,16 @@ namespace psxt
 			if (state->getShiftActions() == nullptr && reductions->length() == 1)
 				return state;
 
-			// Single reduction with shifts, verify if lookaheads collide with the shifts.
+			// Single reduction with shifts.
 			if (state->getShiftActions() != nullptr && reductions->length() == 1)
 			{
-				Linkable<FsmState::ShiftAction*> *i;
+				if (section == Context::SectionType::LEXICON)
+					return state;
 
 printf ("NEED TO CHECK FOR STATE %u (ITEM SIGNATURE=%s)\n", state->getId(), root->getSignature()->c_str());
 root->dump(stdout);
 
+				Linkable<FsmState::ShiftAction*> *i;
 				auto tmp = reductions->first()->getFollow();
 
 				for (i = state->getShiftActions()->head(); i; i = i->next())
@@ -156,14 +158,15 @@ root->dump(stdout);
 				return state;
 			}
 
-printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 			// Multiple reductions, lookaheads required.
 
 			// Lexicon section does not support lookaheads. Only single reductions must be present.
 			if (section == Context::SectionType::LEXICON)
 			{
-				if (reductions->length() > 1)
+				if (reductions->length() > 1) {
 					errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
+					//root->dump(stdout);
+				}
 
 				return state;
 			}
@@ -218,7 +221,7 @@ printf("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n");
 			if (err)
 			{
 				errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
-				// root->dump (stdout);
+				//root->dump(stdout);
 				return state;
 			}
 

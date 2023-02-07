@@ -35,7 +35,7 @@ namespace psxt
 	#define	E_UNEXPECTED_ELEM		8307, "Unexpected `%s` found in definition of `%s'."
 	#define E_EXPECTED_VALUE		8308, "Expected string value for `%s` in %s#%u."
 	#define E_EXPECTED_RPAREN		8309, "Missing right parenthesis after value of `%s` in %s#%u."
-	#define E_INCONSISTENT_TYPE		8310, "Return types are inconsistent in `%s`."
+	#define E_INCONSISTENT_TYPE		8310, "Return types `%s` and `%s` are inconsistent in `%s`"
 	#define E_EXPECTED_LPAREN		8311, "Missing left parenthesis on array: `%s'."
 	#define E_EXPECTED_LNONTERM		8312, "Expected lexical non-terminal name in array: `%s`."
 	#define E_EXPECTED_RPAREN2		8313, "Missing right parenthesis in array: `%s'."

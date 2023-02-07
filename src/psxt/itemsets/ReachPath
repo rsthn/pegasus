@@ -33,6 +33,7 @@ namespace psxt
 				i->value->destroy();
 
 			delete this->list->reset();
+count2--;
 		}
 
 		public:
@@ -42,6 +43,7 @@ namespace psxt
 		 */
 		ReachPath() : ReachNode(ReachNode::Type::PATH) {
 			this->list = new List<ReachNode*>();
+count2++;
 		}
 
 		/**

@@ -38,6 +38,7 @@ namespace psxt
 				i->value->destroy();
 
 			delete this->list->reset();
+count3--;
 		}
 
 		public:
@@ -51,6 +52,7 @@ namespace psxt
 
 			this->nonterm = nullptr;
 			this->itemset = nullptr;
+count3++;
 		}
 
 		/**
@@ -101,10 +103,9 @@ namespace psxt
 			for (auto i = nonterm->getRules()->head(); i; i = i->next())
 				set->addPath (ReachPath::buildFromRule (i->value->getElems()->head(), context));
 
-printf("---------\nReach(%s) [NTERM]:\n", nonterm->getName()->c_str());
+printf("Reach(%s):\n", nonterm->getName()->c_str());
 set->dump(stdout);
 printf("\n\n");
-
 			return set;
 		}
 
@@ -116,10 +117,9 @@ printf("\n\n");
 		 * 
 		 * @param itemset Itemset to build the reachset.
 		 * @param context Global context.
-		 * @param offset Element index.
 		 * @return ReachSet* 
 		 */
-		static ReachSet *buildFromItemSet (ItemSet *itemset, Context *context, int offset)
+		static ReachSet *buildFromItemSet (ItemSet *itemset, Context *context)
 		{
 			ReachSet *set = context != nullptr ? context->getReachSet(itemset->getSignature()) : nullptr;
 			if (set != nullptr) return set;
@@ -134,18 +134,12 @@ printf("\n\n");
 			{
 				auto elem = i->value->getNode();
 
-				for (int j = 0; j < offset && elem != nullptr; j++)
-					elem = elem->next();
-
 				if (elem != nullptr)
 					set->addPath (ReachPath::buildFromRule (elem, context));
-				else
-					set->addPath (new ReachPath());
 			}
-printf("---------\nReach(%s) [SET]:\n", itemset->getSignature()->c_str());
+printf("Reach(@%d : %s):\n", itemset->getId(), itemset->getSignature()->c_str());
 set->dump(stdout);
 printf("\n\n");
-
 			return set;
 		}
 
@@ -170,8 +164,8 @@ printf("\n\n");
 	};
 
 	// Utility function to create a reachset from an itemset.
-	ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context, int offset) {
-		return (ReachSet*)ReachSet::buildFromItemSet (itemset, context, offset)->getReference();
+	ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context) {
+		return (ReachSet*)ReachSet::buildFromItemSet (itemset, context)->getReference();
 	}
 };
 
