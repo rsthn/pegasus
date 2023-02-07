@@ -1,14 +1,15 @@
+#ifndef __ITEM_H
+#define __ITEM_H
 
 namespace psxt
 {
 	class ItemSet;
 	class Item;
 
-
 	/**
-	**	An item is an augmented production rule, that is a production rule with an indicator to specify
-	**	which is the element of the production rule that is currently in focus.
-	*/
+	 * @brief An item is an augmented production rule, that is, a production rule with an indicator (dot) to specify which is the element of the
+	 * production rule that is currently in focus.
+	 */
 
 	class Item
 	{
@@ -47,7 +48,7 @@ namespace psxt
 		public:
 
 		/**
-		 * @brief Initializes the item and sets the focus to the first element in the production rule.
+		 * @brief Initializes the item and focuses in the first element of the production rule.
 		 * @param rule 
 		 */
 		Item (ProductionRule *rule) {
@@ -78,7 +79,7 @@ namespace psxt
 		}
 
 		/**
-		 * @brief Initializes the item from a given production rule.
+		 * @brief Initializes the item from a production rule.
 		 * @param rule 
 		 */
 		void set (ProductionRule *rule)
@@ -92,20 +93,24 @@ namespace psxt
 			this->updateHash();
 		}
 
+		private:
+
 		/**
 		 * @brief Updates the hash code of the item.
 		 */
-		private: void updateHash ()
+		void updateHash ()
 		{
 			hash = this->rule->getNonTerminal()->getId()*1024*1024;
 			hash += this->rule->getId()*1024;
 			hash += this->index;
 		}
 
+		public:
+
 		/**
 		 * @brief Overrides the focused element.
 		 */
-		public: void overrideElem (LString *value)
+		void overrideElem (LString *value)
 		{
 			if (celem) delete celem;
 
@@ -116,20 +121,20 @@ namespace psxt
 		 * @brief Returns the hash code of the item.
 		 * @return uint32_t 
 		 */
-		uint32_t getHash() {
+		uint32_t getHash() const {
 			return this->hash;
 		}
 
 		/**
-		 * @brief Returns the transition itemset or `nullptr` if there is no transition.
+		 * @brief Returns the transition itemset or `nullptr` if there is no transition. The transition is the next itemset to visit when the dot is moved forward.
 		 * @return ItemSet* 
 		 */
-		ItemSet *getTransition() {
+		ItemSet *getTransition() const {
 			return this->transition;
 		}
 
 		/**
-		 * @brief Sets the transition itemset.
+		 * @brief Sets the transition itemset. That is, the next itemset to visit when the dot is moved forward.
 		 * @param transition 
 		 */
 		void setTransition (ItemSet *transition) {
@@ -140,7 +145,7 @@ namespace psxt
 		 * @brief Returns the related production rule.
 		 * @return ProductionRule* 
 		 */
-		ProductionRule *getRule() {
+		ProductionRule *getRule() const {
 			return rule;
 		}
 
@@ -148,7 +153,7 @@ namespace psxt
 		 * @brief Returns the element in focus.
 		 * @return Token* 
 		 */
-		Token *getElem() {
+		Token *getElem() const {
 			return celem != nullptr ? celem : (elem != nullptr ? elem->value : nullptr);
 		}
 
@@ -156,7 +161,7 @@ namespace psxt
 		 * @brief Returns the node of the element in focus.
 		 * @return Linkable<Token*>* 
 		 */
-		Linkable<Token*> *getNode() {
+		Linkable<Token*> *getNode() const {
 			return celem != nullptr ? nullptr : elem;
 		}
 
@@ -164,12 +169,12 @@ namespace psxt
 		 * @brief Returns the index of the element in focus.
 		 * @return int 
 		 */
-		int getIndex() {
+		int getIndex() const {
 			return index;
 		}
 
 		/**
-		 * @brief Rewires the item such that all follows and the element currently wired to oldv will now be wired to newv.
+		 * @brief Changes the transition to `newItemSet` if it was previously set to `oldItemSet`.
 		 * @param oldItemSet 
 		 * @param newItemSet
 		 */
@@ -180,9 +185,11 @@ namespace psxt
 		}
 
 		/**
-		**	Compares the items and returns true if they're equal.
-		*/
-		bool equals (Item *item)
+		 * @brief Compares the items and returns true if they're equal.
+		 * @param item 
+		 * @return bool 
+		 */
+		bool equals (Item *item) const
 		{
 			if (!item) return false;
 
@@ -204,12 +211,17 @@ namespace psxt
 			return item->getElem()->equals (this->getElem(), true);
 		}
 
-		int compare (Item *item) {
+		/**
+		 * @brief Compares the items and returns 0 if they're equal.
+		 * @param item 
+		 * @return int 
+		 */
+		int compare (Item *item) const {
 			return equals(item) ? 0 : 1;
 		}
 
 		/**
-		 * @brief Moves the focus to the next element in the production rule.
+		 * @brief Moves the focus to the next element in the production rule and updates the item's hash.
 		 * @return Item* 
 		 */
 		Item *moveNext()
@@ -261,3 +273,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif

@@ -11,8 +11,7 @@
 #include <asr/utils/Pair>
 
 #include "../CharSet"
-#include "Item.h"
-#include "ItemSet.h"
+#include "ItemSet"
 #include "ReachSet"
 
 namespace psxt

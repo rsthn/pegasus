@@ -1,77 +1,69 @@
-/*
-**	psxt::Scanner
-**
-**	Copyright (c) 2006-2018, RedStar Technologies, All rights reserved.
-**	https://rsthn.com/rstf/pegasus/
-**
-**	LICENSED UNDER THE TERMS OF THE "REDSTAR TECHNOLOGIES LIBRARY LICENSE" (RSTLL), YOU MAY NOT USE
-**	THIS FILE EXCEPT IN COMPLIANCE WITH THE RSTLL. FIND A COPY IN THE "LICENSE.md" FILE IN YOUR SOURCE
-**	OR BINARY DISTRIBUTION. THIS FILE IS PROVIDED BY REDSTAR TECHNOLOGIES "AS IS" AND ANY EXPRESS OR
-**	IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND
-**	FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL REDSTAR TECHNOLOGIES BE LIABLE FOR
-**	ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-**	LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
-**	INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-**	OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
-**	EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-*/
+#ifndef __SCANNER_H
+#define __SCANNER_H
 
 #include <asr/io/FileInputStream>
 
 #include "LString"
 #include "Token"
-#include "ErrorDefs.h"
+#include "ErrorDefs"
 
 namespace psxt
 {
 	using asr::io::FileInputStream;
 
 	/**
-	**	Simple implementation of a scanner. Its responsibility is to scan symbols from an input stream and return
-	**	token definitions.
-	*/
+	 * @brief Pegasus scanner. Scans symbols from an input stream and returns token definitions.
+	 */
 
 	class Scanner
 	{
 		protected:
 
 		/**
-		**	Input stream.
-		*/
+		 * @brief Input stream.
+		 */
 		asr::io::FileInputStream *input;
 		
 		/**
-		**	Name of the source being scanned.
-		*/
+		 * @brief Name of the source being scanned.
+		 */
 		String *source;
 
 		/**
-		**	Internal token used to store the most recently scanned token.
-		*/
+		 * @brief Internal token used to store the most recently scanned token.
+		 */
 		Token *tempToken;
 
 		/**
-		**	Temporal buffer to read tokens.
-		*/
+		 * @brief Temporal buffer to read tokens.
+		 */
 		char buffer[2048];
+		//violet: change this to dynamic buffer
 
 		/**
-		**	Last pushed-back character to be used when reading from the input.
-		*/
+		 * @brief Last pushed-back character to be used when reading from the input.
+		 */
 		int lastch;
 
 		/**
-		**	Current line number and column number.
-		*/
-		unsigned line, col;
+		 * @brief Current line number.
+		 */
+		unsigned line;
+
+		/**
+		 * @brief Current column number.
+		 */
+		unsigned col;
 
 		public:
 		
 		/**
-		**	Constructs the scanner instance to obtain data from the specified data stream. The specified source
-		**	name is used only to provide a more accurate description of the source where a token was found. The
-		**	input stream will be deleted upon deletion of the scanner.
-		*/
+		 * @brief Constructs the scanner instance to obtain data from the specified data stream. The source name is used only to provide a more
+		 * accurate description of where a token was found. The input stream will be deleted upon destruction of the scanner.
+		 * 
+		 * @param sourceName Source name is the filename or path related to the input stream.
+		 * @param input Input stream.
+		 */
 		Scanner (String *sourceName, FileInputStream *input)
 		{
 			this->source = sourceName;
@@ -84,9 +76,9 @@ namespace psxt
 		}
 
 		/**
-		**	Opens a read only data stream for the specified filename and constructs the scanner instance to obtain
-		**	data from it. The input stream will be deleted upon deletion of the scanner.
-		*/
+		 * @brief Opens a read-only data stream for the specified file and constructs the scanner instance to obtain data from it.
+		 * @param filename 
+		 */
 		Scanner (String *filename)
 		{
 			this->source = filename;
@@ -99,8 +91,8 @@ namespace psxt
 		}
 
 		/**
-		**	Destroys the instance of the scanner.
-		*/
+		 * @brief Destroys the instance of the scanner.
+		 */
 		virtual ~Scanner ()
 		{
 			delete this->input;
@@ -108,35 +100,32 @@ namespace psxt
 		}
 
 		/**
-		**	Returns the last token successfully scanned. This object is overwritten on each call to nextToken(),
-		**	therefore if you need a persistent copy of the token you should clone it first.
-		*/
-		Token *getToken ()
-		{
+		 * @brief Returns the last token successfully scanned. This object is overwritten on each call to `nextToken`, therefore if you need a
+		 * persistent copy of the token you should clone it first.
+		 * @return Token* 
+		 */
+		Token *getToken() const {
 			return this->tempToken;
 		}
 
 		/**
-		**	Returns the source file currently being scanned.
-		*/
-		String *getSource ()
-		{
+		 * @brief Returns the name of the source file currently being scanned.
+		 * @return String* 
+		 */
+		String *getSource() const {
 			return this->source;
 		}
 
 		/**
-		**	Scans the next token from the input stream and returns true or false if it was extracted or not.
-		*/
-		bool nextToken ()
+		 * @brief Scans the next token from the input stream and returns `true` or `false` if it was extracted or not.
+		 * @return bool 
+		 */
+		bool nextToken()
 		{
-			int s_line, s_col, a = lastch, ps, s = 0;
 			Token::Type type = Token::Type::UNKNOWN;
+			int s_line, s_col, a = lastch, ps, s = 0;
 			char *buff = buffer;
 			bool cont = true;
-
-			//violet
-			//if (!this->input->isReady())
-			//	return false;
 
 			bool reuse = a == -1 ? false : true;
 			lastch = -1;
@@ -305,8 +294,11 @@ namespace psxt
 		}
 
 		/**
-		**	Returns an injected token with the specified data.
-		*/
+		 * @brief Builds a token with the current line and column number and the given data.
+		 * @param type Token type.
+		 * @param value Value for the token.
+		 * @return Token* 
+		 */
 		Token *buildToken (Token::Type type, const char *value)
 		{
 			tempToken->set(value, type, line, col);
@@ -314,3 +306,5 @@ namespace psxt
 		}
 	};
 };
+
+#endif

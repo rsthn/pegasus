@@ -1,6 +1,5 @@
 
 #define __YEAR__ 2023
-#define ENABLE_GENERATOR 0
 
 #include <assert.h>
 #include <time.h>
@@ -12,7 +11,7 @@
 #include <asr/utils/LList>
 #include <asr/utils/Traits>
 
-#include "psxt/Scanner.h"
+#include "psxt/Scanner"
 #include "psxt/Context"
 #include "psxt/Parser"
 #include "psxt/itemsets/ItemSetBuilder"

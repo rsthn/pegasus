@@ -1,6 +1,11 @@
 #ifndef __ITEMSET_H
 #define __ITEMSET_H
 
+#include <asr/utils/List>
+#include <asr/utils/Triad>
+#include <asr/utils/Linkable>
+#include "Item"
+
 namespace psxt
 {
 	using asr::utils::Integer;
@@ -146,8 +151,10 @@ namespace psxt
 		}
 
 		/**
-		**	Compares the itemsets and returns a boolean indicating if they're equal or not.
-		*/
+		 * @brief Compares the itemsets and returns a boolean indicating if they're equal or not.
+		 * @param item 
+		 * @return bool 
+		 */
 		bool equals (ItemSet *item)
 		{
 			if (item == nullptr) return false;
@@ -167,12 +174,19 @@ namespace psxt
 		}
 
 		/**
-		**	Compares the key of the itemset (ID). The parameter should be a casted int.
-		*/
+		 * @brief Compares the ID of the itemset. Returns 0 if IDs are equal.
+		 * @param value 
+		 * @return int 
+		 */
 		int compare (int value) {
 			return this->id - value;
 		}
 
+		/**
+		 * @brief Compares the itemsets and return 0 if are equal.
+		 * @param item 
+		 * @return int 
+		 */
 		int compare (ItemSet *item) {
 			return equals(item) ? 0 : 1;
 		}
@@ -186,15 +200,17 @@ namespace psxt
 			return this->list->contains(item);
 		}
 
+		private:
+
 		/**
-		**	Structure that groups several items with a charset pattern. This is used to factorize an input charset
-		**	for further processing.
-		*/
-		private: struct Group
+		 * @brief Structure that groups several items with a charset pattern. This is used to factorize a CharSet for further processing.
+		 */
+		struct Group
 		{
 			List<Item*> *items;
 			CharSet *charset;
 
+			// violet: add comments
 			Group (CharSet *charset, Item *item = nullptr)
 			{
 				this->items = new List<Item*> ();
@@ -234,7 +250,7 @@ namespace psxt
 		public:
 
 		/**
-		 * @brief Detects common pattern strings and introduces new rules if necessary.
+		 * @brief Factorizes common pattern strings and introduces new rules if necessary.
 		 */
 		void factorize()
 		{
@@ -424,7 +440,7 @@ namespace psxt
 		}
 
 		/**
-		 * @brief Closes the itemset. A context and a section is required in order to obtain any required non-terminal definitions.
+		 * @brief Performs the closure operation in the itemset. The context and section will be used to obtain any required non-terminal definitions.
 		 * @param context Global context.
 		 * @param section Section ID.
 		 */
@@ -459,6 +475,9 @@ namespace psxt
 		 */
 		void createReachSet (Context *context, Context::SectionType section)
 		{
+			if (this->reachSet != nullptr)
+				return;
+
 			if (section == Context::SectionType::GRAMMAR)
 			{
 				printf ("--- [GRAMMAR] REACHSET FOR ITEMSET %u ---\n", id);

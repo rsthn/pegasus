@@ -3,3 +3,8 @@
 	"unsigned char scanner_cpp[] =\n"
 	"{" (join "," (map (split "" (file::read "scanner_cpp.cpp")) (str "0x" (utils::hex::encode (i))))) "};"
 ))
+
+(file::write "parser_cpp.h" (str
+	"unsigned char parser_cpp[] =\n"
+	"{" (join "," (map (split "" (file::read "parser_cpp.cpp")) (str "0x" (utils::hex::encode (i))))) "};"
+))

@@ -9,7 +9,7 @@
 namespace psxt
 {
 	/**
-	 * @brief Implementation of the pegasus syntax parser. Obtains tokens from a scanner and composes objects with lexical and grammatical rules.
+	 * @brief Pegasus syntax parser. Obtains tokens from a scanner and composes objects with lexical and grammatical rules.
 	 */
 
 	using asr::utils::Integer;
