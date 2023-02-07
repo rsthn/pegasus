@@ -85,17 +85,24 @@ namespace psxt
 		{
 			private:
 
-				List<Token*> *follow;
+				Context *context;
+				Context::SectionType section;
+				ItemSet *itemset;
 				Item *item;
+				List<Token*> *follow;
 
 			public:
 
 			ProductionRule *rule;
 
-			ReduceAction(Item *item)
+			ReduceAction (Context *context, Context::SectionType section, ItemSet *itemset, Item *item)
 			{
 				this->rule = item->getRule();
 				this->follow = nullptr;
+
+				this->context = context;
+				this->section = section;
+				this->itemset = itemset;
 				this->item = item;
 			}
 
@@ -118,7 +125,8 @@ namespace psxt
 
 				this->follow = new List<Token*>();
 
-				printf(">>>>>> %x\n", this->item->getTransition());
+				if (this->itemset->getReachSet() == nullptr)
+					this->itemset->createReachSet (this->context, this->section);
 
 				return this->follow;
 			}
@@ -365,7 +373,7 @@ namespace psxt
 			if (this->jumps != nullptr)
 			{
 				for (Linkable<psxt::FsmState::JumpAction*> *i = this->jumps->head(); i; i = i->next())
-					fprintf (output, "\n  > JUMP %u ON '%s'", i->value->nextState->getId(), i->value->value->getCstr());
+					fprintf (output, "\n  > JUMP %u ON %s", i->value->nextState->getId(), i->value->value->getCstr());
 			}
 
 			if (this->shifts != nullptr)
@@ -373,11 +381,12 @@ namespace psxt
 				for (Linkable<psxt::FsmState::ShiftAction*> *i = this->shifts->head(); i; i = i->next())
 				{
 					if (i->value->value->getType() == Token::Type::END)
-						fprintf (output, "\n  > SHIFT ε -> %u", i->value->nextState->getId());
+						fprintf (output, "\n  > SHIFT ε → %u", i->value->nextState->getId());
 					else
-						fprintf (output, "\n  > SHIFT '%s%s%s' -> %u", i->value->value->getCstr(), 
-							i->value->value->getNValue() != nullptr ? ":" : "",
+						fprintf (output, "\n  > SHIFT %s%s%s%s → %u", i->value->value->getCstr(), 
+							i->value->value->getNValue() != nullptr ? "<" : "",
 							i->value->value->getNValue() != nullptr ? i->value->value->getNValue()->getCstr() : "",
+							i->value->value->getNValue() != nullptr ? ">" : "",
 							i->value->nextState->getId()
 						);
 				}

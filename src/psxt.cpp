@@ -1,5 +1,5 @@
 
-#define __YEAR__ 2018
+#define __YEAR__ 2023
 #define ENABLE_GENERATOR 0
 
 #include <assert.h>
@@ -98,26 +98,12 @@ int main (int argc, char *argv[])
 		parser.parse(&scanner);
 	}
 
-	/* printf("\n---------\n");	
-	for (auto i = context->getNonTerminalPairs(Context::SectionType::LEXICON)->head(); i; i = i->next())
-	{
-		printf("\n%s#%d\n", i->value->key->c_str(), i->value->value->getId());
-		for (auto j = i->value->value->getRules()->head(); j; j = j->next())
-		{
-			printf("    #%d ", j->value->getId());
-			for (auto k = j->value->getElems()->head(); k; k = k->next())
-				printf(" %s@%d", k->value->getCstr(), k->value->getType());
-			printf("\n");
-		}
-	}
-	printf("\n---------\n\n"); */
-
 	// Use the C++ code generator.
 	Generator *generator;
 	generator = new gen::GeneratorCpp (context, suffix);
 
 	// ---------------------
-	// Generate the itemsets, FSM states, and code for the scanner.
+	// Generate the scanner's itemsets, FSM states, and output code.
 
 	LString *initialSymbol = LString::alloc("__start__");
 	int numScannerStates = 0, numParserStates = 0;
@@ -141,7 +127,8 @@ int main (int argc, char *argv[])
 		fclose(os);
 	}
 
-	if (generateCode) {
+	if (generateCode)
+	{
 		str = outdir->concat("scanner")->append(suffix);
 		FILE *os = fopen(str->c_str(), "wb");
 		if (os != nullptr)  {
@@ -151,13 +138,50 @@ int main (int argc, char *argv[])
 		delete str;
 	}
 
+	delete states->clear();
+	delete itemsets->clear();
+
+	// ---------------------
+	// Generate the parser's itemsets, FSM states, and output code.
+
+	itemsets = ItemSetBuilder::build (context, Context::SectionType::GRAMMAR, initialSymbol);
+	if (itemsets != nullptr) {
+		numParserStates = itemsets->length();
+		if (dumpItemSets) {
+			FILE *os = fopen("grammar-itemsets.txt", "wb");
+			for (Linkable<ItemSet*> *i = itemsets->head(); i; i = i->next())
+				i->value->dump(os);
+			fclose(os);
+		}
+	}
+
+	states = FsmStateBuilder::build (context, Context::SectionType::GRAMMAR, itemsets->head()->value);
+	if (dumpStates) {
+		FILE *os = fopen("grammar-states.txt", "wb");
+		for (Linkable<FsmState*> *i = states->head(); i; i = i->next())
+			i->value->dump(os);
+		fclose(os);
+	}
+
+	if (generateCode)
+	{
+		str = outdir->concat("parser")->append(suffix);
+		FILE *os = fopen(str->c_str(), "wb");
+		if (os != nullptr)  {
+			generator->generate (states, Context::SectionType::GRAMMAR, os, name);
+			fclose (os);
+		}
+		delete str;
+	}
+
+	delete states->clear();
+	delete itemsets->clear();
+
 	// ---------------------
 	// Clean up everything.
 
 	initialSymbol->free();
 
-	delete states;
-	delete itemsets;
 	delete generator;
 	delete sources;
 	delete context;
@@ -173,8 +197,6 @@ int main (int argc, char *argv[])
 		printf ("psxt: Generated %u scanner states.\n", numScannerStates);
 	else if (numParserStates)
 		printf ("psxt: Generated %u parser states.\n", numParserStates);
-
-	printf ("psxt: Finished.\n");
 
 	if (asr::memblocks)
 		printf ("\n\x1B[93mWarning:\x1B[0m Possible memory leak detected, left %u blocks wandering.\n", asr::memblocks);

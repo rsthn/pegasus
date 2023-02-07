@@ -134,11 +134,12 @@ namespace psxt
 							if (nonTermName == nullptr)
 							{
 								nonTermName = k->value->getValue();
-								continue;
+								break; //continue
+								//violet: check this thing
 							}
-printf("???????\n");
-							nonTermName = nullptr;
-							break;
+
+							//nonTermName = nullptr;
+							//break;
 						}
 
 						if (nonTermName == nullptr)
@@ -194,7 +195,6 @@ printf("???????\n");
 						}
 
 						if (type == nullptr) type = nt->getReturnType();
-
 						if (!type->equals (nt->getReturnType()))
 						{
 							errmsg (nullptr, E_INCONSISTENT_TYPE, type->c_str(), nt->getReturnType()->c_str(), i->value->value->getName()->c_str());

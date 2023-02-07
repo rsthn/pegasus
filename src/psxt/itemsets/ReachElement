@@ -59,7 +59,11 @@ count1++;
 		virtual void dump (FILE *outputStream)
 		{
 			if (this->value != nullptr)
-				fprintf (outputStream, "%s%s%s", value->getType() == Token::Type::END ? "ε" : value->getCstr(), value->getNValue() != nullptr ? ":" : "", value->getNValue() != nullptr ? value->getNValue()->getCstr() : "");
+				fprintf (outputStream, "%s%s%s%s", 
+					value->getType() == Token::Type::END ? "ε" : value->getCstr(), 
+					value->getNValue() != nullptr ? "<" : "", 
+					value->getNValue() != nullptr ? value->getNValue()->getCstr() : "",
+					value->getNValue() != nullptr ? ">" : "");
 			else
 				fprintf (outputStream, "@");
 		}

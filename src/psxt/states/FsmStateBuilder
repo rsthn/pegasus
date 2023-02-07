@@ -80,7 +80,7 @@ namespace psxt
 
 				// Reduction.
 				if (elem == nullptr) {
-					state->addAction (new FsmState::ReduceAction (i->value));
+					state->addAction (new FsmState::ReduceAction (context, section, root, i->value));
 					continue;
 				}
 

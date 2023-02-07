@@ -249,9 +249,10 @@ namespace psxt
 					}
 				}
 
-				fprintf(outputStream, "%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
-					i->value->getNValue() != nullptr ? ":" : "",
-					i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : ""
+				fprintf(outputStream, "%s%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
+					i->value->getNValue() != nullptr ? "<" : "",
+					i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : "",
+					i->value->getNValue() != nullptr ? ">" : ""
 				);
 			}
 

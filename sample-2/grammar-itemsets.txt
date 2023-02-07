@@ -1,0 +1,37 @@
+ITEMSET 1
+   [2] ·S ε 
+   [3] ·statement-sequence 
+   [3] ·statement-sequence statement 
+   [0] ·↓ statement-sequence#2
+
+ITEMSET 2 <1>
+   [4] S ·ε 
+
+ITEMSET 3 <1>
+   [0] statement-sequence ·↓ S#1
+   [5] statement-sequence ·statement 
+   [6] ·print-statement 
+   [7] ·keyword<print> expression symbol<;> 
+
+ITEMSET 4 <2>
+   [0] S ε ·↓ __start__#1
+
+ITEMSET 5 <3>
+   [0] statement-sequence statement ·↓ statement-sequence#1
+
+ITEMSET 6 <3>
+   [0] print-statement ·↓ statement#1
+
+ITEMSET 7 <3>
+   [8] keyword<print> ·expression symbol<;> 
+   [9] ·number 
+
+ITEMSET 8 <7>
+   [10] keyword<print> expression ·symbol<;> 
+
+ITEMSET 9 <7>
+   [0] number ·↓ expression#1
+
+ITEMSET 10 <8>
+   [0] keyword<print> expression symbol<;> ·↓ print-statement#1
+
