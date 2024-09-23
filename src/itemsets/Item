@@ -96,13 +96,14 @@ namespace psxt
 		private:
 
 		/**
-		 * @brief Updates the hash code of the item.
+		 * @brief Updates the hash code of the item. It is built as (NonTerminalId << 20) | (RuleId << 10) | (Index).
+		 * Limiting resources to 4096 non-terminals, 1024 rules per non-terminal, and 1024 symbols per rule.
 		 */
 		void updateHash ()
 		{
 			hash = this->rule->getNonTerminal()->getId()*1024*1024;
-			hash += this->rule->getId()*1024;
-			hash += this->index;
+			hash |= this->rule->getId()*1024;
+			hash |= this->index;
 		}
 
 		public:

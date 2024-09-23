@@ -8,7 +8,6 @@
 
 namespace psxt
 {
-	using asr::utils::Integer;
 	using asr::utils::Linkable;
 	using asr::utils::Triad;
 
@@ -397,41 +396,45 @@ namespace psxt
 		 */
 		void buildSignature()
 		{
+			// violet: check this static buffer!
 			static char buffer[8192];
 
-			List<Item*> *list = new List<Item*> ();
+			List<Item*> *ordered = new List<Item*> ();
 
+			// Add first item to the queue.
 			if (this->list->head())
-				list->push(this->list->first());
+				ordered->push(this->list->first());
 
+			// Add each item to the queue ordered in ascending order by hash.
 			for (auto i = this->list->head() ? this->list->head()->next() : nullptr; i; i = i->next())
 			{
 				uint32_t h = i->value->getHash();
-				bool added = false;
+				bool insertAtBottom = true;
 
-				for (auto j = list->head(); j; j = j->next())
+				// Insert item in the appropriate position.
+				for (auto j = ordered->head(); j; j = j->next())
 				{
 					if (h < j->value->getHash())
 					{
-						list->insertBefore (j, i->value);
-						added = true;
+						ordered->insertBefore (j, i->value);
+						insertAtBottom = false;
 						break;
 					}
 				}
 
-				if (!added) list->push(i->value);
+				if (insertAtBottom) ordered->push(i->value);
 			}
 
 			char *buff = buffer;
 			*buff = '\0';
 
-			for (auto i = list->head(); i; i = i->next())
+			for (auto i = ordered->head(); i; i = i->next())
 			{
 				sprintf(buff, "%s%x", i->prev() != nullptr ? ":" : "", i->value->getHash());
 				buff += strlen(buff);
 			}
 
-			delete list->reset();
+			delete ordered->reset();
 
 			if (this->signature != nullptr)
 				this->signature->free();

@@ -1,0 +1,7 @@
+{
+	"files.associations": {
+		"*.fn": "clojure",
+		"*.vs": "clojure",
+		"itemset": "cpp"
+	}
+}

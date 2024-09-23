@@ -1,5 +1,8 @@
+//violet: comments
 #ifndef __CHARSET_H
 #define __CHARSET_H
+
+#include "LString"
 
 namespace psxt
 {

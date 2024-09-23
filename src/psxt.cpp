@@ -1,35 +1,29 @@
 
-#define __YEAR__ 2023
-
 #include <assert.h>
 #include <time.h>
 #include <stdlib.h>
 
-#include <asr/utils/List>
-#include <asr/utils/String>
-#include <asr/utils/Triad>
-#include <asr/utils/LList>
-#include <asr/utils/Traits>
-
-#include "psxt/Scanner"
-#include "psxt/Context"
-#include "psxt/Parser"
-#include "psxt/itemsets/ItemSetBuilder"
-#include "psxt/states/FsmStateBuilder"
+#include "Parser"
+#include "itemsets/ItemSetBuilder"
+#include "states/FsmStateBuilder"
 
 #include "gen/Cpp"
 
 using namespace asr::utils;
 using namespace psxt;
 
+/**
+ * @brief Entry point.
+ */
 int main (int argc, char *argv[])
 {
 	List<String*> *sources = new List<String*> ();
 	String *fmt = new String("cpp"), *name = new String(""), *outdir = new String(""), *str;
+
 	bool dumpStates = false, dumpItemSets = false, generateCode = true;
 	const char *suffix;
 
-	printf ("Pegasus v5.00 Copyright (c) 2006-%d RedStar Technologies, All rights reserved.\n", __YEAR__);
+	printf ("Pegasus v5.00 Copyright (c) 2006-%d RedStar Technologies, All rights reserved.\n", 2023);
 	if (argc < 2)
 	{
 		printf (

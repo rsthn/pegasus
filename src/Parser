@@ -4,17 +4,17 @@
 #include <asr/utils/List>
 
 #include "Context"
+#include "Scanner"
 #include "Integer"
 
 namespace psxt
 {
+	using asr::utils::List;
+	using asr::utils::Linkable;
+
 	/**
 	 * @brief Pegasus syntax parser. Obtains tokens from a scanner and composes objects with lexical and grammatical rules.
 	 */
-
-	using asr::utils::Integer;
-	using asr::utils::List;
-	using asr::utils::Linkable;
 
 	class Parser
 	{

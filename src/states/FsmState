@@ -10,7 +10,6 @@
 namespace psxt
 {
 	using asr::utils::String;
-	using asr::utils::Integer;
 	using asr::utils::Linkable;
 
 	/**
