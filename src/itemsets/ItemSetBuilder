@@ -16,160 +16,160 @@
 
 namespace psxt
 {	
-	using asr::utils::LList;
-	using asr::utils::List;
-	using asr::utils::Linkable;
-	using asr::utils::Pair;
+    using asr::utils::LList;
+    using asr::utils::List;
+    using asr::utils::Linkable;
+    using asr::utils::Pair;
 
-	/**
-	 * @brief The responsibility of this class is to build the set of item sets given a grammar context.
-	 */
+    /**
+     * @brief The responsibility of this class is to build the set of item sets given a grammar context.
+     */
 
-	class ItemSetBuilder
-	{
-		protected:
+    class ItemSetBuilder
+    {
+        protected:
 
-		/**
-		 * @brief Prints an error message and returns the value of 1.
-		 * @param token 
-		 * @param code 
-		 * @param msg 
-		 * @param ... 
-		 * @return int
-		 */
-		static int errmsg (Token *token, int code, char *msg, ...)
-		{
-			va_list args;
-			va_start (args, msg);
+        /**
+         * @brief Prints an error message and returns the value of 1.
+         * @param token 
+         * @param code 
+         * @param msg 
+         * @param ... 
+         * @return int
+         */
+        static int errmsg (Token *token, int code, char *msg, ...)
+        {
+            va_list args;
+            va_start (args, msg);
 
-			if (token != nullptr)
-				printf ("[%c%u] %s %u,%u: ", code <= 4999 ? 'W' : 'E', code, token->getSource()->c_str(), token->getLine(), token->getCol());
-			else
-				printf ("[%c%u]: ", code <= 4999 ? 'W' : 'E', code);
+            if (token != nullptr)
+                printf ("[%c%u] %s %u,%u: ", code <= 4999 ? 'W' : 'E', code, token->getSource()->c_str(), token->getLine(), token->getCol());
+            else
+                printf ("[%c%u]: ", code <= 4999 ? 'W' : 'E', code);
 
-			vprintf (msg, args);
+            vprintf (msg, args);
 
-			printf("\n");
-			return 1;
-		}
+            printf("\n");
+            return 1;
+        }
 
-		private:
+        private:
 
-		/**
-		 * @brief Binds all tokens that reference a non-terminal name to its respective non-terminal object.
-		 */
-		static void bindTokenNTRefs (Context *context, Context::SectionType section)
-		{
-			for (Linkable<Pair<LString*, NonTerminal*>*> *n = context->getNonTerminalPairs(section)->head(); n; n = n->next())
-			{
-				for (Linkable<ProductionRule*> *r = n->value->value->getRules()->head(); r; r = r->next())
-				{
-					for (Linkable<Token*> *t = r->value->getElems()->head(); t; t = t->next())
-					{
-						if (t->value->getType() != Token::Type::IDENTIFIER)
-							continue;
+        /**
+         * @brief Binds all tokens that reference a non-terminal name to its respective non-terminal object.
+         */
+        static void bindTokenNTRefs (Context *context, Context::SectionType section)
+        {
+            for (Linkable<Pair<LString*, NonTerminal*>*> *n = context->getNonTerminalPairs(section)->head(); n; n = n->next())
+            {
+                for (Linkable<ProductionRule*> *r = n->value->value->getRules()->head(); r; r = r->next())
+                {
+                    for (Linkable<Token*> *t = r->value->getElems()->head(); t; t = t->next())
+                    {
+                        if (t->value->getType() != Token::Type::IDENTIFIER)
+                            continue;
 
-						NonTerminal *nonterm = context->getNonTerminal(section, t->value->getValue());
-						if (nonterm != nullptr) t->value->setNonTerminal(nonterm);
-					}
-				}
-			}
-		}
+                        NonTerminal *nonterm = context->getNonTerminal(section, t->value->getValue());
+                        if (nonterm != nullptr) t->value->setNonTerminal(nonterm);
+                    }
+                }
+            }
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Builds a list of itemsets from a section. The start symbol indicates the first non-terminal to process in the section.
-		 *
-		 * @param context Global context.
-		 * @param section Section ID.
-		 * @param startSymbol Name of the start non-terminal.
-		 * @return LList<ItemSet*>* 
-		 */
-		static LList<ItemSet*> *build (Context *context, Context::SectionType section, LString *startSymbol)
-		{
-			NonTerminal *nonterm = context->getNonTerminal (section, startSymbol);
-			if (nonterm == nullptr) return nullptr;
+        /**
+         * @brief Builds a list of itemsets from a section. The start symbol indicates the first non-terminal to process in the section.
+         *
+         * @param context Global context.
+         * @param section Section ID.
+         * @param startSymbol Name of the start non-terminal.
+         * @return LList<ItemSet*>* 
+         */
+        static LList<ItemSet*> *build (Context *context, Context::SectionType section, LString *startSymbol)
+        {
+            NonTerminal *nonterm = context->getNonTerminal (section, startSymbol);
+            if (nonterm == nullptr) return nullptr;
 
-			bindTokenNTRefs (context, section);
+            bindTokenNTRefs (context, section);
 
-			int nextItemId = 1;
+            int nextItemId = 1;
 
-			LList<ItemSet*> *itemsets = new LList<ItemSet*>();
-			List<ItemSet*> *queue = new List<ItemSet*>();
-			List<ItemSet*> *tqueue = new List<ItemSet*>();
+            LList<ItemSet*> *itemsets = new LList<ItemSet*>();
+            List<ItemSet*> *queue = new List<ItemSet*>();
+            List<ItemSet*> *tqueue = new List<ItemSet*>();
 
-			ItemSet *itemset;
+            ItemSet *itemset;
 
-			// Build item set 0.
-			itemset = new ItemSet();
-			itemset->addNonTerminal (nonterm);
-			itemset->close (context, section);
-			queue->push(itemset);
+            // Build item set 0.
+            itemset = new ItemSet();
+            itemset->addNonTerminal (nonterm);
+            itemset->close (context, section);
+            queue->push(itemset);
 
-			while (queue->length())
-			{
-				itemset = queue->shift();
+            while (queue->length())
+            {
+                itemset = queue->shift();
 
-				for (Linkable<Item*> *i = itemset->getItems()->head(); i; i = i->next())
-				{
-					if (i->value->getTransition() != nullptr || i->value->getElem() == nullptr)
-						continue;
+                for (Linkable<Item*> *i = itemset->getItems()->head(); i; i = i->next())
+                {
+                    if (i->value->getTransition() != nullptr || i->value->getElem() == nullptr)
+                        continue;
 
-					ItemSet *nextItemset = new ItemSet();
-					nextItemset->addParent(itemset);
+                    ItemSet *nextItemset = new ItemSet();
+                    nextItemset->addParent(itemset);
 
-					i->value->setTransition(nextItemset);
-					nextItemset->addItem ((new Item (i->value))->moveNext());
+                    i->value->setTransition(nextItemset);
+                    nextItemset->addItem ((new Item (i->value))->moveNext());
 
-					for (Linkable<Item*> *j = i->next(); j; j = j->next())
-					{
-						if (j->value->getTransition() != nullptr || j->value->getElem() == nullptr)
-							continue;
+                    for (Linkable<Item*> *j = i->next(); j; j = j->next())
+                    {
+                        if (j->value->getTransition() != nullptr || j->value->getElem() == nullptr)
+                            continue;
 
-						if (!j->value->getElem()->equals (i->value->getElem(), true))
-							continue;
+                        if (!j->value->getElem()->equals (i->value->getElem(), true))
+                            continue;
 
-						j->value->setTransition(nextItemset);
-						nextItemset->addItem ((new Item (j->value))->moveNext());
-					}
+                        j->value->setTransition(nextItemset);
+                        nextItemset->addItem ((new Item (j->value))->moveNext());
+                    }
 
-					nextItemset->close (context, section);
-					tqueue->push (nextItemset);
-				}
+                    nextItemset->close (context, section);
+                    tqueue->push (nextItemset);
+                }
 
-				ItemSet *existingItemset = itemsets->get(itemset);
-				if (existingItemset != nullptr)
-				{
-					if (itemset->getParents()->length() != 1)
-						printf("---------------- HAVE MORE THAN ONE PARENT!!\n");
+                ItemSet *existingItemset = itemsets->get(itemset);
+                if (existingItemset != nullptr)
+                {
+                    if (itemset->getParents()->length() != 1)
+                        printf("---------------- HAVE MORE THAN ONE PARENT!!\n");
 
-					itemset->getParents()->first()->rewire (itemset, existingItemset);
-					existingItemset->addParent (itemset->getParents()->first());
+                    itemset->getParents()->first()->rewire (itemset, existingItemset);
+                    existingItemset->addParent (itemset->getParents()->first());
 
-					tqueue->clear();
-					delete itemset;
+                    tqueue->clear();
+                    delete itemset;
 
-					continue;
-				}
+                    continue;
+                }
 
-				itemsets->push(itemset);
-				itemset->setId(nextItemId++);
+                itemsets->push(itemset);
+                itemset->setId(nextItemId++);
 
-				queue->append(tqueue);
-				tqueue->reset();
-			}
+                queue->append(tqueue);
+                tqueue->reset();
+            }
 
-			// Create the reach sets of all item sets.
-			//for (auto i = itemsets->head(); i; i = i->next())
-			//	i->value->createReachSet(context, section);
+            // Create the reach sets of all item sets.
+            //for (auto i = itemsets->head(); i; i = i->next())
+            //	i->value->createReachSet(context, section);
 
-			delete queue->reset();
-			delete tqueue->reset();
+            delete queue->reset();
+            delete tqueue->reset();
 
-			return itemsets;
-		}
-	};
+            return itemsets;
+        }
+    };
 };
 
 #endif

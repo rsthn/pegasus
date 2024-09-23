@@ -9,391 +9,391 @@
 
 namespace psxt
 {
-	using asr::utils::String;
-	using asr::utils::Linkable;
+    using asr::utils::String;
+    using asr::utils::Linkable;
 
-	/**
-	 * @brief Describes an state for a finite state machine created specifically for parsing.
-	 */
-	class FsmState
-	{
-		public:
+    /**
+     * @brief Describes an state for a finite state machine created specifically for parsing.
+     */
+    class FsmState
+    {
+        public:
 
-		/**
-		 * @brief Describes a Shift action.
-		 */
-		struct ShiftAction
-		{
-			Token *value;
-			FsmState *nextState;
-			ProductionRule *rule;
+        /**
+         * @brief Describes a Shift action.
+         */
+        struct ShiftAction
+        {
+            Token *value;
+            FsmState *nextState;
+            ProductionRule *rule;
 
-			ShiftAction(ProductionRule *rule, Token *value, FsmState *nextState)
-			{
-				this->rule = rule;
-				this->nextState = nextState;
-				this->value = value;
-			}
+            ShiftAction(ProductionRule *rule, Token *value, FsmState *nextState)
+            {
+                this->rule = rule;
+                this->nextState = nextState;
+                this->value = value;
+            }
 
-			~ShiftAction()
-			{
-			}
+            ~ShiftAction()
+            {
+            }
 
-			/**
-			 * @brief Compares the key of the shift. The parameter should be a casted token.
-			 * 
-			 * @param value 
-			 * @return int 
-			 */
-			int compare (Token *value)
-			{
-				return this->value->equals(value, true) ? 0 : 1;
-			}
-		};
+            /**
+             * @brief Compares the key of the shift. The parameter should be a casted token.
+             * 
+             * @param value 
+             * @return int 
+             */
+            int compare (Token *value)
+            {
+                return this->value->equals(value, true) ? 0 : 1;
+            }
+        };
 
-		/**
-		 * @brief Describes a GoTo action.
-		 */
-		struct GotoAction
-		{
-			NonTerminal *nonterm;
-			FsmState *nextState;
+        /**
+         * @brief Describes a GoTo action.
+         */
+        struct GotoAction
+        {
+            NonTerminal *nonterm;
+            FsmState *nextState;
 
-			GotoAction(NonTerminal *nonterm, FsmState *nextState)
-			{
-				this->nextState = nextState;
-				this->nonterm = nonterm;
-			}
+            GotoAction(NonTerminal *nonterm, FsmState *nextState)
+            {
+                this->nextState = nextState;
+                this->nonterm = nonterm;
+            }
 
-			/**
-			 * @brief Compares the key of the next state. The parameter should be a casted int.
-			 * 
-			 * @param value 
-			 * @return int 
-			 */
-			int compare (int value)
-			{
-				return this->nextState->getId() - value;
-			}
-		};
+            /**
+             * @brief Compares the key of the next state. The parameter should be a casted int.
+             * 
+             * @param value 
+             * @return int 
+             */
+            int compare (int value)
+            {
+                return this->nextState->getId() - value;
+            }
+        };
 
-		/**
-		 * @brief Describes a Reduce action.
-		 */
-		struct ReduceAction
-		{
-			private:
+        /**
+         * @brief Describes a Reduce action.
+         */
+        struct ReduceAction
+        {
+            private:
 
-				Context *context;
-				Context::SectionType section;
-				ItemSet *itemset;
-				Item *item;
-				List<Token*> *follow;
+                Context *context;
+                Context::SectionType section;
+                ItemSet *itemset;
+                Item *item;
+                List<Token*> *follow;
 
-			public:
+            public:
 
-			ProductionRule *rule;
+            ProductionRule *rule;
 
-			ReduceAction (Context *context, Context::SectionType section, ItemSet *itemset, Item *item)
-			{
-				this->rule = item->getRule();
-				this->follow = nullptr;
+            ReduceAction (Context *context, Context::SectionType section, ItemSet *itemset, Item *item)
+            {
+                this->rule = item->getRule();
+                this->follow = nullptr;
 
-				this->context = context;
-				this->section = section;
-				this->itemset = itemset;
-				this->item = item;
-			}
+                this->context = context;
+                this->section = section;
+                this->itemset = itemset;
+                this->item = item;
+            }
 
-			/**
-			 * @brief Returns `true` if the follow set is present in the reduction.
-			 * @return bool 
-			 */
-			bool hasFollow() {
-				return this->follow != nullptr;
-			}
+            /**
+             * @brief Returns `true` if the follow set is present in the reduction.
+             * @return bool 
+             */
+            bool hasFollow() {
+                return this->follow != nullptr;
+            }
 
-			/**
-			 * @brief Returns the follow-set of the reduction.
-			 * @return List<Token*> 
-			 */
-			List<Token*> *getFollow()
-			{
-				if (this->follow != nullptr)
-					return this->follow;
+            /**
+             * @brief Returns the follow-set of the reduction.
+             * @return List<Token*> 
+             */
+            List<Token*> *getFollow()
+            {
+                if (this->follow != nullptr)
+                    return this->follow;
 
-				this->follow = new List<Token*>();
+                this->follow = new List<Token*>();
 
-				if (this->itemset->getReachSet() == nullptr)
-					this->itemset->createReachSet (this->context, this->section);
+                if (this->itemset->getReachSet() == nullptr)
+                    this->itemset->createReachSet (this->context, this->section);
 
-				return this->follow;
-			}
+                return this->follow;
+            }
 
-			~ReduceAction()
-			{
-				if (this->follow != nullptr)
-					delete this->follow->reset();
-			}
-		};
+            ~ReduceAction()
+            {
+                if (this->follow != nullptr)
+                    delete this->follow->reset();
+            }
+        };
 
-		/**
-		 * @brief Describes a Jump action.
-		 */
-		struct JumpAction
-		{
-			Token *value;
-			FsmState *nextState;
+        /**
+         * @brief Describes a Jump action.
+         */
+        struct JumpAction
+        {
+            Token *value;
+            FsmState *nextState;
 
-			JumpAction(Token *value, FsmState *nextState)
-			{
-				this->nextState = nextState;
-				this->value = value;
-			}
-		};
+            JumpAction(Token *value, FsmState *nextState)
+            {
+                this->nextState = nextState;
+                this->value = value;
+            }
+        };
 
-		protected:
+        protected:
 
-		/**
-		 * @brief ID of the state.
-		 */
-		int id;
+        /**
+         * @brief ID of the state.
+         */
+        int id;
 
-		/**
-		 * @brief List of shift actions.
-		 */
-		List<ShiftAction*> *shifts;
+        /**
+         * @brief List of shift actions.
+         */
+        List<ShiftAction*> *shifts;
 
-		/**
-		 * @brief List of goto actions.
-		 */
-		List<GotoAction*> *gotos;
+        /**
+         * @brief List of goto actions.
+         */
+        List<GotoAction*> *gotos;
 
-		/**
-		 * @brief List of reduce actions.
-		 */
-		List<ReduceAction*> *reductions;
+        /**
+         * @brief List of reduce actions.
+         */
+        List<ReduceAction*> *reductions;
 
-		/**
-		 * @brief List of jump actions.
-		 */
-		List<JumpAction*> *jumps;
+        /**
+         * @brief List of jump actions.
+         */
+        List<JumpAction*> *jumps;
 
-		public:
+        public:
 
-		/**
-		 * @brief Initializes the state with an ID.
-		 * @param id 
-		 */
-		FsmState (int id)
-		{
-			this->id = id;
+        /**
+         * @brief Initializes the state with an ID.
+         * @param id 
+         */
+        FsmState (int id)
+        {
+            this->id = id;
 
-			this->shifts = nullptr;
-			this->gotos = nullptr;
-			this->reductions = nullptr;
-			this->jumps = nullptr;
-		}
+            this->shifts = nullptr;
+            this->gotos = nullptr;
+            this->reductions = nullptr;
+            this->jumps = nullptr;
+        }
 
-		/**
-		 * @brief Destroys the state and all related shifts, reductions, gotos and jumps.
-		 */
-		virtual ~FsmState ()
-		{
-			if (this->shifts) {
-				this->shifts->clear();
-				delete this->shifts;
-			}
+        /**
+         * @brief Destroys the state and all related shifts, reductions, gotos and jumps.
+         */
+        virtual ~FsmState ()
+        {
+            if (this->shifts) {
+                this->shifts->clear();
+                delete this->shifts;
+            }
 
-			if (this->reductions) {
-				this->reductions->clear();
-				delete this->reductions;
-			}
+            if (this->reductions) {
+                this->reductions->clear();
+                delete this->reductions;
+            }
 
-			if (this->gotos) {
-				this->gotos->clear();
-				delete this->gotos;
-			}
+            if (this->gotos) {
+                this->gotos->clear();
+                delete this->gotos;
+            }
 
-			if (this->jumps) {
-				this->jumps->clear();
-				delete this->jumps;
-			}
-		}
+            if (this->jumps) {
+                this->jumps->clear();
+                delete this->jumps;
+            }
+        }
 
-		/**
-		 * @brief Returns the ID of the state.
-		 * @return int 
-		 */
-		int getId() {
-			return this->id;
-		}
+        /**
+         * @brief Returns the ID of the state.
+         * @return int 
+         */
+        int getId() {
+            return this->id;
+        }
 
-		/**
-		 * @brief Compares the key of the state (ID). The parameter should be a casted int.
-		 * 
-		 * @param value 
-		 * @return int 
-		 */
-		int compare (int value)
-		{
-			return this->id - value;
-		}
+        /**
+         * @brief Compares the key of the state (ID). The parameter should be a casted int.
+         * 
+         * @param value 
+         * @return int 
+         */
+        int compare (int value)
+        {
+            return this->id - value;
+        }
 
-		/**
-		 * @brief Adds a shift action to the state.
-		 * @param a 
-		 */
-		void addAction (ShiftAction *a)
-		{
-			if (this->shifts == nullptr)
-				this->shifts = new List<ShiftAction*> ();
+        /**
+         * @brief Adds a shift action to the state.
+         * @param a 
+         */
+        void addAction (ShiftAction *a)
+        {
+            if (this->shifts == nullptr)
+                this->shifts = new List<ShiftAction*> ();
 
-			this->shifts->push (a);
-		}
+            this->shifts->push (a);
+        }
 
-		/**
-		 * @brief Adds a goto action to the state.
-		 * @param a 
-		 */
-		void addAction (GotoAction *a)
-		{
-			if (this->gotos == nullptr)
-				this->gotos = new List<GotoAction*> ();
+        /**
+         * @brief Adds a goto action to the state.
+         * @param a 
+         */
+        void addAction (GotoAction *a)
+        {
+            if (this->gotos == nullptr)
+                this->gotos = new List<GotoAction*> ();
 
-			this->gotos->push (a);
-		}
+            this->gotos->push (a);
+        }
 
-		/**
-		 * @brief Adds a reduce action to the state.
-		 * @param a 
-		 */
-		void addAction (ReduceAction *a)
-		{
-			if (this->reductions == nullptr)
-				this->reductions = new List<ReduceAction*> ();
+        /**
+         * @brief Adds a reduce action to the state.
+         * @param a 
+         */
+        void addAction (ReduceAction *a)
+        {
+            if (this->reductions == nullptr)
+                this->reductions = new List<ReduceAction*> ();
 
-			this->reductions->push (a);
-		}
+            this->reductions->push (a);
+        }
 
-		/**
-		 * @brief Adds a jump action to the state.
-		 * @param a 
-		 */
-		void addAction (JumpAction *a)
-		{
-			if (this->jumps == nullptr)
-				this->jumps = new List<JumpAction*> ();
+        /**
+         * @brief Adds a jump action to the state.
+         * @param a 
+         */
+        void addAction (JumpAction *a)
+        {
+            if (this->jumps == nullptr)
+                this->jumps = new List<JumpAction*> ();
 
-			this->jumps->push (a);
-		}
+            this->jumps->push (a);
+        }
 
-		/**
-		 * @brief Returns the list of actions.
-		 * @return List<ShiftAction*>* 
-		 */
-		List<ShiftAction*> *getShiftActions() {
-			return this->shifts;
-		}
+        /**
+         * @brief Returns the list of actions.
+         * @return List<ShiftAction*>* 
+         */
+        List<ShiftAction*> *getShiftActions() {
+            return this->shifts;
+        }
 
-		/**
-		 * @brief Returns the list of goto actions.
-		 * @return List<GotoAction*>* 
-		 */
-		List<GotoAction*> *getGotoActions() {
-			return this->gotos;
-		}
+        /**
+         * @brief Returns the list of goto actions.
+         * @return List<GotoAction*>* 
+         */
+        List<GotoAction*> *getGotoActions() {
+            return this->gotos;
+        }
 
-		/**
-		 * @brief Returns the list of reduce actions.
-		 * @return List<ReduceAction*>* 
-		 */
-		List<ReduceAction*> *getReduceActions() {
-			return this->reductions;
-		}
+        /**
+         * @brief Returns the list of reduce actions.
+         * @return List<ReduceAction*>* 
+         */
+        List<ReduceAction*> *getReduceActions() {
+            return this->reductions;
+        }
 
-		/**
-		 * @brief Returns the list of actions.
-		 * @return List<JumpAction*>* 
-		 */
-		List<JumpAction*> *getJumpActions() {
-			return this->jumps;
-		}
+        /**
+         * @brief Returns the list of actions.
+         * @return List<JumpAction*>* 
+         */
+        List<JumpAction*> *getJumpActions() {
+            return this->jumps;
+        }
 
-		/**
-		 * @brief Dumps a reduction to the specified stream.
-		 * 
-		 * @param output 
-		 * @param reduce 
-		 */
-		void dump (FILE *output, psxt::FsmState::ReduceAction *reduce)
-		{
-			fprintf (output, "\n  > REDUCE %s#%u", reduce->rule->getNonTerminal()->getName()->c_str(), reduce->rule->getId());
+        /**
+         * @brief Dumps a reduction to the specified stream.
+         * 
+         * @param output 
+         * @param reduce 
+         */
+        void dump (FILE *output, psxt::FsmState::ReduceAction *reduce)
+        {
+            fprintf (output, "\n  > REDUCE %s#%u", reduce->rule->getNonTerminal()->getName()->c_str(), reduce->rule->getId());
 
-			if (reduce->rule->getVisibility() != 0)
-				fprintf (output, " %s", reduce->rule->getVisibility() == 1 ? "(EXPORT)" : "(IGNORE)");
+            if (reduce->rule->getVisibility() != 0)
+                fprintf (output, " %s", reduce->rule->getVisibility() == 1 ? "(EXPORT)" : "(IGNORE)");
 
-			if (reduce->hasFollow())
-			{
-				for (Linkable<Token*> *i = reduce->getFollow()->head(); i; i = i->next())
-				{
-					fprintf (output, "\n    > ON %s%s%s ", 
-						i->value->getType() == Token::Type::END ? "(END)" : i->value->getCstr(), 
-						i->value->getNValue() != nullptr ? ":" : "",
-						i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : ""
-					);
-				}
-			}
-		}
+            if (reduce->hasFollow())
+            {
+                for (Linkable<Token*> *i = reduce->getFollow()->head(); i; i = i->next())
+                {
+                    fprintf (output, "\n    > ON %s%s%s ", 
+                        i->value->getType() == Token::Type::END ? "(END)" : i->value->getCstr(), 
+                        i->value->getNValue() != nullptr ? ":" : "",
+                        i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : ""
+                    );
+                }
+            }
+        }
 
-		/**
-		 * @brief Dumps the state to the specified stream.
-		 * 
-		 * @param output 
-		 */
-		void dump (FILE *output)
-		{
-			fprintf (output, "STATE %u", id);
+        /**
+         * @brief Dumps the state to the specified stream.
+         * 
+         * @param output 
+         */
+        void dump (FILE *output)
+        {
+            fprintf (output, "STATE %u", id);
 
-			if (this->reductions != nullptr)
-			{
-				for (Linkable<psxt::FsmState::ReduceAction*> *i = this->reductions->head(); i; i = i->next())
-				{
-					dump (output, i->value);
-				}
-			}
+            if (this->reductions != nullptr)
+            {
+                for (Linkable<psxt::FsmState::ReduceAction*> *i = this->reductions->head(); i; i = i->next())
+                {
+                    dump (output, i->value);
+                }
+            }
 
-			if (this->gotos != nullptr)
-			{
-				for (Linkable<psxt::FsmState::GotoAction*> *i = this->gotos->head(); i; i = i->next())
-					fprintf (output, "\n  > GOTO %u ON %s", i->value->nextState->getId(), i->value->nonterm->getName()->c_str());
-			}
+            if (this->gotos != nullptr)
+            {
+                for (Linkable<psxt::FsmState::GotoAction*> *i = this->gotos->head(); i; i = i->next())
+                    fprintf (output, "\n  > GOTO %u ON %s", i->value->nextState->getId(), i->value->nonterm->getName()->c_str());
+            }
 
-			if (this->jumps != nullptr)
-			{
-				for (Linkable<psxt::FsmState::JumpAction*> *i = this->jumps->head(); i; i = i->next())
-					fprintf (output, "\n  > JUMP %u ON %s", i->value->nextState->getId(), i->value->value->getCstr());
-			}
+            if (this->jumps != nullptr)
+            {
+                for (Linkable<psxt::FsmState::JumpAction*> *i = this->jumps->head(); i; i = i->next())
+                    fprintf (output, "\n  > JUMP %u ON %s", i->value->nextState->getId(), i->value->value->getCstr());
+            }
 
-			if (this->shifts != nullptr)
-			{
-				for (Linkable<psxt::FsmState::ShiftAction*> *i = this->shifts->head(); i; i = i->next())
-				{
-					if (i->value->value->getType() == Token::Type::END)
-						fprintf (output, "\n  > SHIFT ε → %u", i->value->nextState->getId());
-					else
-						fprintf (output, "\n  > SHIFT %s%s%s%s → %u", i->value->value->getCstr(), 
-							i->value->value->getNValue() != nullptr ? "<" : "",
-							i->value->value->getNValue() != nullptr ? i->value->value->getNValue()->getCstr() : "",
-							i->value->value->getNValue() != nullptr ? ">" : "",
-							i->value->nextState->getId()
-						);
-				}
-			}
+            if (this->shifts != nullptr)
+            {
+                for (Linkable<psxt::FsmState::ShiftAction*> *i = this->shifts->head(); i; i = i->next())
+                {
+                    if (i->value->value->getType() == Token::Type::END)
+                        fprintf (output, "\n  > SHIFT ε → %u", i->value->nextState->getId());
+                    else
+                        fprintf (output, "\n  > SHIFT %s%s%s%s → %u", i->value->value->getCstr(), 
+                            i->value->value->getNValue() != nullptr ? "<" : "",
+                            i->value->value->getNValue() != nullptr ? i->value->value->getNValue()->getCstr() : "",
+                            i->value->value->getNValue() != nullptr ? ">" : "",
+                            i->value->nextState->getId()
+                        );
+                }
+            }
 
-			fprintf (output, "\n\n");
-		}
-	};
+            fprintf (output, "\n\n");
+        }
+    };
 };
 
 #endif

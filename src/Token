@@ -9,289 +9,289 @@
 
 namespace psxt
 {
-	using asr::utils::String;
-	using asr::utils::Linkable;
+    using asr::utils::String;
+    using asr::utils::Linkable;
 
-	class NonTerminal;
+    class NonTerminal;
 
-	/**
-	 * @brief Describes a token, that is a string obtained from a source file that belongs to a certain group which gives it meaning.
-	 */
-	class Token
-	{
-		public:
+    /**
+     * @brief Describes a token, that is a string obtained from a source file that belongs to a certain group which gives it meaning.
+     */
+    class Token
+    {
+        public:
 
-		/**
-		 * @brief Token types.
-		 */
-		enum Type
-		{
-			INVALID=0,
-			IDENTIFIER=1,
-			NUMBER=2,
-			SQSTRING=3,
-			DQSTRING=4,
-			SYMBOL=5,
+        /**
+         * @brief Token types.
+         */
+        enum Type
+        {
+            INVALID=0,
+            IDENTIFIER=1,
+            NUMBER=2,
+            SQSTRING=3,
+            DQSTRING=4,
+            SYMBOL=5,
 
-			NVALUE=6,
-			BLOCK=7,
+            NVALUE=6,
+            BLOCK=7,
 
-			END=0x70,
-			UNKNOWN
-		};
+            END=0x70,
+            UNKNOWN
+        };
 
-		protected:
+        protected:
 
-		/**
-		 * @brief String value of the token.
-		 */
-		LString *value;
+        /**
+         * @brief String value of the token.
+         */
+        LString *value;
 
-		/**
-		 * @brief Type of the token.
-		 */
-		Type type;
+        /**
+         * @brief Type of the token.
+         */
+        Type type;
 
-		/**
-		 * @brief Source of the token.
-		 */
-		String *source;
+        /**
+         * @brief Source of the token.
+         */
+        String *source;
 
-		/**
-		 * @brief Linked NValue of the element (if any).
-		 */
-		Token *nvalue;
+        /**
+         * @brief Linked NValue of the element (if any).
+         */
+        Token *nvalue;
 
-		/**
-		 * @brief Non-terminal where the token belongs.
-		 */
-		NonTerminal *nonterm;
+        /**
+         * @brief Non-terminal where the token belongs.
+         */
+        NonTerminal *nonterm;
 
-		/**
-		 * @brief Line number where the token appears in the source file.
-		 */
-		unsigned line;
+        /**
+         * @brief Line number where the token appears in the source file.
+         */
+        unsigned line;
 
-		/**
-		 * @brief Column number where the token appears in the source file.
-		 */
-		unsigned col;
+        /**
+         * @brief Column number where the token appears in the source file.
+         */
+        unsigned col;
 
-		public:
+        public:
 
-		/**
-		**	Initializes the token object with the specified parameters.
-		*/
-		Token (String *source, const char *value="", Type type=Type::INVALID, int line=0, int col=0)
-		{
-			this->value = LString::alloc(value);
-			this->type = type;
+        /**
+        **	Initializes the token object with the specified parameters.
+        */
+        Token (String *source, const char *value="", Type type=Type::INVALID, int line=0, int col=0)
+        {
+            this->value = LString::alloc(value);
+            this->type = type;
 
-			this->source = source;
-			this->line = line;
-			this->col = col;
+            this->source = source;
+            this->line = line;
+            this->col = col;
 
-			this->nvalue = nullptr;
-			this->nonterm = nullptr;
-		}
+            this->nvalue = nullptr;
+            this->nonterm = nullptr;
+        }
 
-		/**
-		**	Constructs a new token as a copy of the specified token but with a different value. If the value is not
-		**	specified the value of the input token will be used.
-		*/
-		Token (Token *token, LString *value=nullptr, bool alloc=true)
-		{
-			this->value = value != nullptr ? (alloc ? LString::alloc(value) : value) : LString::alloc(token->value);
-			this->type = token->type;
+        /**
+        **	Constructs a new token as a copy of the specified token but with a different value. If the value is not
+        **	specified the value of the input token will be used.
+        */
+        Token (Token *token, LString *value=nullptr, bool alloc=true)
+        {
+            this->value = value != nullptr ? (alloc ? LString::alloc(value) : value) : LString::alloc(token->value);
+            this->type = token->type;
 
-			this->source = token->source;
-			this->line = token->line;
-			this->col = token->col;
+            this->source = token->source;
+            this->line = token->line;
+            this->col = token->col;
 
-			this->nvalue = nullptr;
-			this->nonterm = nullptr;
-		}
+            this->nvalue = nullptr;
+            this->nonterm = nullptr;
+        }
 
-		/**
-		**	Destroys the token instance.
-		*/
-		virtual ~Token ()
-		{
-			this->value->free();
+        /**
+        **	Destroys the token instance.
+        */
+        virtual ~Token ()
+        {
+            this->value->free();
 
-			if (nvalue != nullptr)
-				delete nvalue;
-		}
+            if (nvalue != nullptr)
+                delete nvalue;
+        }
 
-		/**
-		**	Compares two tokens and returns true if both are equal.
-		*/
-		bool equals (Token *item)
-		{
-			if (item == nullptr || item->type != type)
-				return false;
+        /**
+        **	Compares two tokens and returns true if both are equal.
+        */
+        bool equals (Token *item)
+        {
+            if (item == nullptr || item->type != type)
+                return false;
 
-			return item->value->equals (value);
-		}
+            return item->value->equals (value);
+        }
 
-		/**
-		**	Compares two tokens (and optionally the nvalues) and returns true if both are equal.
-		*/
-		bool equals (Token *item, bool nvalues)
-		{
-			if (item == this) return true;
+        /**
+        **	Compares two tokens (and optionally the nvalues) and returns true if both are equal.
+        */
+        bool equals (Token *item, bool nvalues)
+        {
+            if (item == this) return true;
 
-			if (item == nullptr || item->type != type)
-				return false;
+            if (item == nullptr || item->type != type)
+                return false;
 
-			if (!item->value->equals(value))
-				return false;
+            if (!item->value->equals(value))
+                return false;
 
-			if (!nvalues)
-				return true;
+            if (!nvalues)
+                return true;
 
-			return (this->nvalue == nullptr && item->nvalue == nullptr)
-				|| (this->nvalue != nullptr && item->nvalue != nullptr && this->nvalue->equals (item->nvalue));
-		}
+            return (this->nvalue == nullptr && item->nvalue == nullptr)
+                || (this->nvalue != nullptr && item->nvalue != nullptr && this->nvalue->equals (item->nvalue));
+        }
 
-		/**
-		**	Returns the hash code of the string.
-		*/
-		uint32_t getHash ()
-		{
-			return this->value->getHash() - (this->nvalue != nullptr ? this->nvalue->getHash() : 0);
-		}
+        /**
+        **	Returns the hash code of the string.
+        */
+        uint32_t getHash ()
+        {
+            return this->value->getHash() - (this->nvalue != nullptr ? this->nvalue->getHash() : 0);
+        }
 
-		/**
-		**	Performs a comparison by a known key of the object. Returns true if both keys are equal.
-		*/
-		int compare (Token *item)
-		{
-			return equals ((Token *)item, true) ? 0 : 1;
-		}
+        /**
+        **	Performs a comparison by a known key of the object. Returns true if both keys are equal.
+        */
+        int compare (Token *item)
+        {
+            return equals ((Token *)item, true) ? 0 : 1;
+        }
 
-		/**
-		 * @brief Returns the string value of the token.
-		 * @return LString* 
-		 */
-		LString *getValue() {
-			return this->value;
-		}
+        /**
+         * @brief Returns the string value of the token.
+         * @return LString* 
+         */
+        LString *getValue() {
+            return this->value;
+        }
 
-		/**
-		 * @brief Returns the value of the token as a single character.
-		 * @return int 
-		 */
-		int getChar() {
-			return this->value->getValue()[0];
-		}
+        /**
+         * @brief Returns the value of the token as a single character.
+         * @return int 
+         */
+        int getChar() {
+            return this->value->getValue()[0];
+        }
 
-		/**
-		 * @brief Returns a C-style string of the token's value.
-		 * @return const char* 
-		 */
-		const char *getCstr()
-		{
-			return this->value->c_str();
-		}
+        /**
+         * @brief Returns a C-style string of the token's value.
+         * @return const char* 
+         */
+        const char *getCstr()
+        {
+            return this->value->c_str();
+        }
 
-		/**
-		 * @brief Sets the type of the token.
-		 * @return Token* 
-		 */
-		Token *setType (Type type) {
-			this->type = type;
-			return this;
-		}
+        /**
+         * @brief Sets the type of the token.
+         * @return Token* 
+         */
+        Token *setType (Type type) {
+            this->type = type;
+            return this;
+        }
 
-		/**
-		 * @brief Returns the type of the token.
-		 * @return Type
-		 */
-		Type getType() {
-			return this->type;
-		}
+        /**
+         * @brief Returns the type of the token.
+         * @return Type
+         */
+        Type getType() {
+            return this->type;
+        }
 
-		/**
-		 * @brief Sets the non-terminal value (NValue) related to the token.
-		 * @param nvalue 
-		 * @return Token* 
-		 */
-		Token *setNValue (Token *nvalue) {
-			this->nvalue = nvalue;
-			return this;
-		}
+        /**
+         * @brief Sets the non-terminal value (NValue) related to the token.
+         * @param nvalue 
+         * @return Token* 
+         */
+        Token *setNValue (Token *nvalue) {
+            this->nvalue = nvalue;
+            return this;
+        }
 
-		/**
-		 * @brief Returns the NValue of the token (if any).
-		 * @return Token* 
-		 */
-		Token *getNValue() {
-			return this->nvalue;
-		}
+        /**
+         * @brief Returns the NValue of the token (if any).
+         * @return Token* 
+         */
+        Token *getNValue() {
+            return this->nvalue;
+        }
 
-		/**
-		 * @brief Sets the non-terminal of the token.
-		 * @param nonterm
-		 * @return Token*
-		 */
-		Token *setNonTerminal (NonTerminal *nonterm) {
-			this->nonterm = nonterm;
-			return this;
-		}
+        /**
+         * @brief Sets the non-terminal of the token.
+         * @param nonterm
+         * @return Token*
+         */
+        Token *setNonTerminal (NonTerminal *nonterm) {
+            this->nonterm = nonterm;
+            return this;
+        }
 
-		/**
-		 * @brief Returns the non-terminal of the token.
-		 * @return NonTerminal*
-		 */
-		NonTerminal *getNonTerminal() {
-			return this->nonterm;
-		}
+        /**
+         * @brief Returns the non-terminal of the token.
+         * @return NonTerminal*
+         */
+        NonTerminal *getNonTerminal() {
+            return this->nonterm;
+        }
 
-		/**
-		 * @brief Returns the source of the token.
-		 * @return String* 
-		 */
-		String *getSource() {
-			return this->source;
-		}
+        /**
+         * @brief Returns the source of the token.
+         * @return String* 
+         */
+        String *getSource() {
+            return this->source;
+        }
 
-		/**
-		 * @brief Returns the column number where the token appears in the source file.
-		 * @return int 
-		 */
-		int getCol() {
-			return this->col;
-		}
+        /**
+         * @brief Returns the column number where the token appears in the source file.
+         * @return int 
+         */
+        int getCol() {
+            return this->col;
+        }
 
-		/**
-		 * @brief Returns the line number where the token appears in the source file.
-		 * @return int 
-		 */
-		int getLine() {
-			return this->line;
-		}
+        /**
+         * @brief Returns the line number where the token appears in the source file.
+         * @return int 
+         */
+        int getLine() {
+            return this->line;
+        }
 
-		/**
-		 * @brief Sets the attributes of the token.
-		 * 
-		 * @param value String value.
-		 * @param type Type of the token.
-		 * @param line Line number.
-		 * @param col Column number.
-		 */
-		void set (const char *value, Type type, int line, int col)
-		{
-			if (this->value != nullptr)
-				this->value->free();
+        /**
+         * @brief Sets the attributes of the token.
+         * 
+         * @param value String value.
+         * @param type Type of the token.
+         * @param line Line number.
+         * @param col Column number.
+         */
+        void set (const char *value, Type type, int line, int col)
+        {
+            if (this->value != nullptr)
+                this->value->free();
 
-			this->value = LString::alloc(value);
-			this->type = type;
+            this->value = LString::alloc(value);
+            this->type = type;
 
-			this->line = line;
-			this->col = col;
-		}
-	};
+            this->line = line;
+            this->col = col;
+        }
+    };
 };
 
 #endif

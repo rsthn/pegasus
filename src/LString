@@ -10,249 +10,249 @@
 
 namespace psxt
 {
-	using asr::utils::String;
-	using asr::utils::LList;
-	using asr::utils::Linkable;
+    using asr::utils::String;
+    using asr::utils::LList;
+    using asr::utils::Linkable;
 
-	// violet: remove this stuff
-	int xxx=0, count0=0, count1=0, count2=0, count3=0;
+    // violet: remove this stuff
+    int xxx=0, count0=0, count1=0, count2=0, count3=0;
 
-	/**
-	**	Implementation of a pooLed string, that is, a string whose value can be found uniquely in a pool. This allows
-	**	to make a better use of memory since there are no duplicate strings, and also improve comparison speed because
-	**	strings are now compared by their memory addresses.
-	*/
-	class LString : public traits::no_delete
-	{
-		protected:
+    /**
+    **	Implementation of a pooLed string, that is, a string whose value can be found uniquely in a pool. This allows
+    **	to make a better use of memory since there are no duplicate strings, and also improve comparison speed because
+    **	strings are now compared by their memory addresses.
+    */
+    class LString : public traits::no_delete
+    {
+        protected:
 
-		/**
-		**	String pool.
-		*/
-		static LList<LString*> *pool;
+        /**
+        **	String pool.
+        */
+        static LList<LString*> *pool;
 
-		/**
-		**	The actual underlying string, only accessible to the caller by using getString().
-		*/
-		String *string;
+        /**
+        **	The actual underlying string, only accessible to the caller by using getString().
+        */
+        String *string;
 
-		/**
-		**	Node of the LString within the pool.
-		*/
-		Linkable<LString*> *node;
+        /**
+        **	Node of the LString within the pool.
+        */
+        Linkable<LString*> *node;
 
-		/**
-		**	Number of active references to this string.
-		*/
-		int refCount;
+        /**
+        **	Number of active references to this string.
+        */
+        int refCount;
 
-		/**
-		**	Hash code of the string.
-		*/
-		uint32_t hash;
+        /**
+        **	Hash code of the string.
+        */
+        uint32_t hash;
 
-		/**
-		**	Internal constructor.
-		*/
-		LString()
-		{
-			this->string = nullptr;
-			this->node = nullptr;
+        /**
+        **	Internal constructor.
+        */
+        LString()
+        {
+            this->string = nullptr;
+            this->node = nullptr;
 
-			this->refCount = 1;
-		}
+            this->refCount = 1;
+        }
 
-		/**
-		**	Internal destructor.
-		*/
-		private: virtual ~LString()
-		{
-			if (this->string != nullptr)
-				delete this->string;
+        /**
+        **	Internal destructor.
+        */
+        private: virtual ~LString()
+        {
+            if (this->string != nullptr)
+                delete this->string;
 
-			LString::remove(this);
-		}
+            LString::remove(this);
+        }
 
-		/**
-		**	Searches the pool for a string match.
-		*/
-		protected: static LString *get (const char *value)
-		{
-			return pool != nullptr ? pool->get(value, String::getHash(value)) : nullptr;
-		}
+        /**
+        **	Searches the pool for a string match.
+        */
+        protected: static LString *get (const char *value)
+        {
+            return pool != nullptr ? pool->get(value, String::getHash(value)) : nullptr;
+        }
 
-		/**
-		**	Registers a string on the pool.
-		*/
-		static LString *put (LString *value)
-		{
-			if (pool == nullptr)
-				pool = new LList<LString*> ();
+        /**
+        **	Registers a string on the pool.
+        */
+        static LString *put (LString *value)
+        {
+            if (pool == nullptr)
+                pool = new LList<LString*> ();
 
-			pool->push(value);
-			value->node = pool->tail();
+            pool->push(value);
+            value->node = pool->tail();
 
-			return value;
-		}
+            return value;
+        }
 
-		/**
-		**	Removes a string from the pool.
-		*/
-		static void remove (LString *value)
-		{
-			if (pool == nullptr || value->node == nullptr)
-				return;
+        /**
+        **	Removes a string from the pool.
+        */
+        static void remove (LString *value)
+        {
+            if (pool == nullptr || value->node == nullptr)
+                return;
 
-			pool->remove(value->node);
-		}
+            pool->remove(value->node);
+        }
 
-		public:
+        public:
 
-		/**
-		**	Length of the string.
-		*/
-		int length;
+        /**
+        **	Length of the string.
+        */
+        int length;
 
-		/**
-		**	Removes all strings from the pool.
-		*/
-		static void finish ()
-		{
-			if (pool != nullptr)
-			{
-				for (LString *i = pool->pop(); i; i = pool->pop())
-				{
-					i->node = nullptr;
-					delete i;
-				}
+        /**
+        **	Removes all strings from the pool.
+        */
+        static void finish ()
+        {
+            if (pool != nullptr)
+            {
+                for (LString *i = pool->pop(); i; i = pool->pop())
+                {
+                    i->node = nullptr;
+                    delete i;
+                }
 
-				delete pool;
-			}
+                delete pool;
+            }
 
-			printf("Count0: %u\n", count0);
-			printf("Count1: %u\n", count1);
-			printf("Count2: %u\n", count2);
-			printf("Count3: %u\n", count3);
-		}
+            printf("Count0: %u\n", count0);
+            printf("Count1: %u\n", count1);
+            printf("Count2: %u\n", count2);
+            printf("Count3: %u\n", count3);
+        }
 
-		/**
-		**	Allocates a new string with the provided value.
-		*/
-		static LString *alloc (const char *value)
-		{
-			LString *s = LString::get(value);
-			if (s != nullptr)
-			{
-				s->refCount++;
-				return s;
-			}
+        /**
+        **	Allocates a new string with the provided value.
+        */
+        static LString *alloc (const char *value)
+        {
+            LString *s = LString::get(value);
+            if (s != nullptr)
+            {
+                s->refCount++;
+                return s;
+            }
 
-			s = new LString();
+            s = new LString();
 
-			s->string = new String (value);
-			s->length = s->string->length;
-			s->hash = s->string->getHash();
+            s->string = new String (value);
+            s->length = s->string->length;
+            s->hash = s->string->getHash();
 
-			return LString::put(s);
-		}
+            return LString::put(s);
+        }
 
-		/**
-		**	Allocates a string from another string.
-		*/
-		static LString *alloc (LString *value)
-		{
-			value->refCount++;
-			return value;
-		}
+        /**
+        **	Allocates a string from another string.
+        */
+        static LString *alloc (LString *value)
+        {
+            value->refCount++;
+            return value;
+        }
 
-		/**
-		**	Releases the string reference.
-		*/
-		void free ()
-		{
-			refCount--;
-			if (refCount < 0) printf("[WARN] Attempting to release already dead LString (%d).\n", refCount);
-			if (refCount == 0) delete this;
-		}
+        /**
+        **	Releases the string reference.
+        */
+        void free ()
+        {
+            refCount--;
+            if (refCount < 0) printf("[WARN] Attempting to release already dead LString (%d).\n", refCount);
+            if (refCount == 0) delete this;
+        }
 
-		/**
-		**	Closes the string.
-		*/
-		LString *clone() {
-			return LString::alloc(this);
-		}
+        /**
+        **	Closes the string.
+        */
+        LString *clone() {
+            return LString::alloc(this);
+        }
 
-		/**
-		**	Returns the underlying string object.
-		*/
-		String *getString() {
-			return this->string;
-		}
+        /**
+        **	Returns the underlying string object.
+        */
+        String *getString() {
+            return this->string;
+        }
 
-		/**
-		**	Returns the buffer of the string.
-		*/
-		const char *getValue() {
-			return this->string->value;
-		}
+        /**
+        **	Returns the buffer of the string.
+        */
+        const char *getValue() {
+            return this->string->value;
+        }
 
-		/**
-		**	Returns a zero-terminated string representing the string object.
-		*/
-		const char *c_str() {
-			return this->string->c_str();
-		}
+        /**
+        **	Returns a zero-terminated string representing the string object.
+        */
+        const char *c_str() {
+            return this->string->c_str();
+        }
 
-		/**
-		**	Returns a single character at the specified index.
-		*/
-		int charAt (int index) {
-			return this->string->charAt(index);
-		}
+        /**
+        **	Returns a single character at the specified index.
+        */
+        int charAt (int index) {
+            return this->string->charAt(index);
+        }
 
-		/**
-		**	Compares the string with the specified value (full comparison).
-		*/
-		bool cequals (const char *value, int length=-1)
-		{
-			if (length == -1) length = strlen(value);
+        /**
+        **	Compares the string with the specified value (full comparison).
+        */
+        bool cequals (const char *value, int length=-1)
+        {
+            if (length == -1) length = strlen(value);
 
-			if (this->length != length)
-				return false;
+            if (this->length != length)
+                return false;
 
-			return !memcmp (this->string->value, value, length);
-		}
+            return !memcmp (this->string->value, value, length);
+        }
 
-		/**
-		**	Returns the hash code of the string.
-		*/
-		uint32_t getHash() {
-			return this->hash;
-		}
+        /**
+        **	Returns the hash code of the string.
+        */
+        uint32_t getHash() {
+            return this->hash;
+        }
 
-		/**
-		**	Compares if the string objects are the same (reference comparison).
-		*/
-		bool equals (LString *value) {
-			return this == value;
-		}
+        /**
+        **	Compares if the string objects are the same (reference comparison).
+        */
+        bool equals (LString *value) {
+            return this == value;
+        }
 
-		/**
-		**	Compares strings by reference.
-		*/
-		int compare (const char *value) {
-			return cequals(value) ? 0 : 1;
-		}
+        /**
+        **	Compares strings by reference.
+        */
+        int compare (const char *value) {
+            return cequals(value) ? 0 : 1;
+        }
 
-		int compare (LString *value) {
-			return this - value;
-		}
-	};
+        int compare (LString *value) {
+            return this - value;
+        }
+    };
 
-	/**
-	**	String pool.
-	*/
-	LList<LString*> *LString::pool = nullptr;
+    /**
+    **	String pool.
+    */
+    LList<LString*> *LString::pool = nullptr;
 
 };
 

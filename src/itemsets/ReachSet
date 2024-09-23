@@ -7,166 +7,166 @@
 
 namespace psxt
 {
-	/**
-	 * @brief Describes a set of one or more paths.
-	 */
-	class ReachSet : public ReachNode
-	{
-		protected:
+    /**
+     * @brief Describes a set of one or more paths.
+     */
+    class ReachSet : public ReachNode
+    {
+        protected:
 
-		/**
-		 * @brief List of reachable paths.
-		 */
-		List<ReachPath*> *list;
+        /**
+         * @brief List of reachable paths.
+         */
+        List<ReachPath*> *list;
 
-		/**
-		 * @brief Non-terminal used to build the reach set.
-		 */
-		NonTerminal *nonterm;
+        /**
+         * @brief Non-terminal used to build the reach set.
+         */
+        NonTerminal *nonterm;
 
-		/**
-		 * @brief Itemset used to build the reach set.
-		 */
-		ItemSet *itemset;
+        /**
+         * @brief Itemset used to build the reach set.
+         */
+        ItemSet *itemset;
 
-		/**
-		 * @brief Destroys the reach set.
-		 */
-		virtual ~ReachSet()
-		{
-			for (auto i = this->list->head(); i; i = i->next())
-				i->value->destroy();
+        /**
+         * @brief Destroys the reach set.
+         */
+        virtual ~ReachSet()
+        {
+            for (auto i = this->list->head(); i; i = i->next())
+                i->value->destroy();
 
-			delete this->list->reset();
+            delete this->list->reset();
 count3--;
-		}
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Constructs an empty reach set.
-		 */
-		ReachSet() : ReachNode(ReachNode::Type::SET)
-		{
-			this->list = new List<ReachPath*> ();
+        /**
+         * @brief Constructs an empty reach set.
+         */
+        ReachSet() : ReachNode(ReachNode::Type::SET)
+        {
+            this->list = new List<ReachPath*> ();
 
-			this->nonterm = nullptr;
-			this->itemset = nullptr;
+            this->nonterm = nullptr;
+            this->itemset = nullptr;
 count3++;
-		}
+        }
 
-		/**
-		 * @brief Returns the non-terminal used to generate the reach set.
-		 * @return NonTerminal* 
-		 */
-		NonTerminal *getNonTerminal() {
-			return this->nonterm;
-		}
+        /**
+         * @brief Returns the non-terminal used to generate the reach set.
+         * @return NonTerminal* 
+         */
+        NonTerminal *getNonTerminal() {
+            return this->nonterm;
+        }
 
-		/**
-		 * @brief Returns the itemset used to generate the reach set.
-		 * @return ItemSet* 
-		 */
-		ItemSet *getItemSet() {
-			return this->itemset;
-		}
+        /**
+         * @brief Returns the itemset used to generate the reach set.
+         * @return ItemSet* 
+         */
+        ItemSet *getItemSet() {
+            return this->itemset;
+        }
 
-		/**
-		 * @brief Adds a path to the reach set.
-		 * @param path 
-		 */
-		void addPath (ReachPath *path) {
-			this->list->push ((ReachPath*)path->getReference());
-		}
+        /**
+         * @brief Adds a path to the reach set.
+         * @param path 
+         */
+        void addPath (ReachPath *path) {
+            this->list->push ((ReachPath*)path->getReference());
+        }
 
-		/**
-		 * @brief Builds a reach set from a non-terminal. If a context is provided, the non-terminal will be first searched
-		 * in the context's global reach sets, if found it will be returned, otherwise it will be generated.
-		 * 
-		 * WARNING: All elements in rules must be bound to their respective non-terminals (ItemSetBuilder::bindTokenNTRefs).
-		 * 
-		 * @param nonterm Non-terminal to generate the reach set.
-		 * @param context Global context.
-		 * @return ReachSet*
-		 */
-		static ReachSet *buildFromNonTerminal (NonTerminal *nonterm, Context *context)
-		{
-			ReachSet *set = context != nullptr ? context->getReachSet(nonterm->getName()) : nullptr;
-			if (set != nullptr) return set;
+        /**
+         * @brief Builds a reach set from a non-terminal. If a context is provided, the non-terminal will be first searched
+         * in the context's global reach sets, if found it will be returned, otherwise it will be generated.
+         * 
+         * WARNING: All elements in rules must be bound to their respective non-terminals (ItemSetBuilder::bindTokenNTRefs).
+         * 
+         * @param nonterm Non-terminal to generate the reach set.
+         * @param context Global context.
+         * @return ReachSet*
+         */
+        static ReachSet *buildFromNonTerminal (NonTerminal *nonterm, Context *context)
+        {
+            ReachSet *set = context != nullptr ? context->getReachSet(nonterm->getName()) : nullptr;
+            if (set != nullptr) return set;
 
-			set = new ReachSet();
-			set->nonterm = nonterm;
+            set = new ReachSet();
+            set->nonterm = nonterm;
 
-			if (context != nullptr)
-				context->addReachSet (nonterm->getName(), set);
+            if (context != nullptr)
+                context->addReachSet (nonterm->getName(), set);
 
-			for (auto i = nonterm->getRules()->head(); i; i = i->next())
-				set->addPath (ReachPath::buildFromRule (i->value->getElems()->head(), context));
+            for (auto i = nonterm->getRules()->head(); i; i = i->next())
+                set->addPath (ReachPath::buildFromRule (i->value->getElems()->head(), context));
 
 printf("Reach(%s):\n", nonterm->getName()->c_str());
 set->dump(stdout);
 printf("\n\n");
-			return set;
-		}
+            return set;
+        }
 
-		/**
-		 * @brief Builds a reach set from an itemset. If a context is provided the itemset signature will be first searched
-		 * in the context's global reach sets, if found it will be returned, otherwise it will be generated.
-		 * 
-		 * WARNING: All elements in rules must be bound to their respective non-terminals (ItemSetBuilder::bindTokenNTRefs).
-		 * 
-		 * @param itemset Itemset to build the reachset.
-		 * @param context Global context.
-		 * @return ReachSet* 
-		 */
-		static ReachSet *buildFromItemSet (ItemSet *itemset, Context *context)
-		{
-			ReachSet *set = context != nullptr ? context->getReachSet(itemset->getSignature()) : nullptr;
-			if (set != nullptr) return set;
+        /**
+         * @brief Builds a reach set from an itemset. If a context is provided the itemset signature will be first searched
+         * in the context's global reach sets, if found it will be returned, otherwise it will be generated.
+         * 
+         * WARNING: All elements in rules must be bound to their respective non-terminals (ItemSetBuilder::bindTokenNTRefs).
+         * 
+         * @param itemset Itemset to build the reachset.
+         * @param context Global context.
+         * @return ReachSet* 
+         */
+        static ReachSet *buildFromItemSet (ItemSet *itemset, Context *context)
+        {
+            ReachSet *set = context != nullptr ? context->getReachSet(itemset->getSignature()) : nullptr;
+            if (set != nullptr) return set;
 
-			set = new ReachSet();
-			set->itemset = itemset;
+            set = new ReachSet();
+            set->itemset = itemset;
 
-			if (context != nullptr)
-				context->addReachSet (itemset->getSignature(), set);
+            if (context != nullptr)
+                context->addReachSet (itemset->getSignature(), set);
 
-			for (auto i = itemset->getItems()->head(); i; i = i->next())
-			{
-				auto elem = i->value->getNode();
+            for (auto i = itemset->getItems()->head(); i; i = i->next())
+            {
+                auto elem = i->value->getNode();
 
-				if (elem != nullptr)
-					set->addPath (ReachPath::buildFromRule (elem, context));
-			}
+                if (elem != nullptr)
+                    set->addPath (ReachPath::buildFromRule (elem, context));
+            }
 printf("Reach(@%d : %s):\n", itemset->getId(), itemset->getSignature()->c_str());
 set->dump(stdout);
 printf("\n\n");
-			return set;
-		}
+            return set;
+        }
 
-		/**
-		 * @brief Dumps the node to the specified output stream.
-		 * @param outputStream 
-		 */
-		virtual void dump (FILE *os)
-		{
-			fprintf (os, "{");
+        /**
+         * @brief Dumps the node to the specified output stream.
+         * @param outputStream 
+         */
+        virtual void dump (FILE *os)
+        {
+            fprintf (os, "{");
 
-			for (auto i = this->list->head(); i; i = i->next())
-			{
-				i->value->dump(os);
+            for (auto i = this->list->head(); i; i = i->next())
+            {
+                i->value->dump(os);
 
-				if (i->next() != nullptr)
-					fprintf (os, ", ");
-			}
+                if (i->next() != nullptr)
+                    fprintf (os, ", ");
+            }
 
-			fprintf (os, "}");
-		}
-	};
+            fprintf (os, "}");
+        }
+    };
 
-	// Utility function to create a reachset from an itemset.
-	ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context) {
-		return (ReachSet*)ReachSet::buildFromItemSet (itemset, context)->getReference();
-	}
+    // Utility function to create a reachset from an itemset.
+    ReachSet *ReachSet__buildFromItemSet (ItemSet *itemset, Context *context) {
+        return (ReachSet*)ReachSet::buildFromItemSet (itemset, context)->getReference();
+    }
 };
 
 #include "ReachEnd"

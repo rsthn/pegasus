@@ -10,148 +10,148 @@
 
 namespace $0
 {
-	/**
-	 * @brief Source parser.
-	 */
-	class Parser
-	{
-		protected:
+    /**
+     * @brief Source parser.
+     */
+    class Parser
+    {
+        protected:
 
-		/**
-		 * @brief Parser stack.
-		 * 
-		 */
-		int *stack, stackSize;
+        /**
+         * @brief Parser stack.
+         * 
+         */
+        int *stack, stackSize;
 
-		/**
-		 * @brief Current production rule values.
-		 */
-		void **argv;
+        /**
+         * @brief Current production rule values.
+         */
+        void **argv;
 
-		public:
+        public:
 
-		/**
-		 * @brief Initializes the parser context.
-		 * @param stackSize Parser stack size (default: 1024).
-		 */
-		Parser (int stackSize=1024)
-		{
-			this->stack = new int[stackSize];
-			this->stackSize = stackSize;
+        /**
+         * @brief Initializes the parser context.
+         * @param stackSize Parser stack size (default: 1024).
+         */
+        Parser (int stackSize=1024)
+        {
+            this->stack = new int[stackSize];
+            this->stackSize = stackSize;
 
-			this->argv = new void*[128];
-		}
+            this->argv = new void*[128];
+        }
 
-		/**
-		 * @brief Releases resources.
-		 */
-		~Parser()
-		{
-			delete this->stack;
-			delete this->argv;
-		}
+        /**
+         * @brief Releases resources.
+         */
+        ~Parser()
+        {
+            delete this->stack;
+            delete this->argv;
+        }
 
-		/**
-		 * @brief Parses data from the specified scanner and returns the parsed structure.
-		 * @param scanner Scanner to obtain tokens.
-		 * @param context Parser context.
-		 * @return $T
-		 */
-		$T parse (Scanner *scanner, Context *context=nullptr)
-		{
-			int error=0, state=1, reduce=0, shift=1, symbol=-1;
-			int nonterm, rule, release, shifted, bp=0;
+        /**
+         * @brief Parses data from the specified scanner and returns the parsed structure.
+         * @param scanner Scanner to obtain tokens.
+         * @param context Parser context.
+         * @return $T
+         */
+        $T parse (Scanner *scanner, Context *context=nullptr)
+        {
+            int error=0, state=1, reduce=0, shift=1, symbol=-1;
+            int nonterm, rule, release, shifted, bp=0;
 
-			int *stack = this->stack, sp = 0;
-			void *temp, **argv = this->argv;
+            int *stack = this->stack, sp = 0;
+            void *temp, **argv = this->argv;
 
-			Token *token = nullptr;
+            Token *token = nullptr;
 
-			if (context == nullptr)
-				context = new Context ();
+            if (context == nullptr)
+                context = new Context ();
 
-			while (1)
-			{
-				if (error)
-				{
-					printf ("(Parser Error)\n");
+            while (1)
+            {
+                if (error)
+                {
+                    printf ("(Parser Error)\n");
 
-					for (int i = 1; i <= sp; i++)
-						printf (">> %u\n", stack[i]);
+                    for (int i = 1; i <= sp; i++)
+                        printf (">> %u\n", stack[i]);
 
-					argv[0] = nullptr;
-					break;
-				}
+                    argv[0] = nullptr;
+                    break;
+                }
 
-				if (shift)
-				{
-					if (token != nullptr)
-						argv[bp++] = token;
+                if (shift)
+                {
+                    if (token != nullptr)
+                        argv[bp++] = token;
 
-					token = scanner->shiftToken();
-					symbol = token->getType();
-					shift = 0;
-				}
+                    token = scanner->shiftToken();
+                    symbol = token->getType();
+                    shift = 0;
+                }
 
-				if (reduce)
-				{
-					if (nonterm == 0)
-						break;
+                if (reduce)
+                {
+                    if (nonterm == 0)
+                        break;
 
-					state = stack[sp -= release];
-					bp -= shifted - 1;
-				}
-				else
-				{
-					if (sp == stackSize-1) { printf ("(Stack Overflow)\n"); error = 1; continue; }
-					stack[++sp] = state;
-				}
+                    state = stack[sp -= release];
+                    bp -= shifted - 1;
+                }
+                else
+                {
+                    if (sp == stackSize-1) { printf ("(Stack Overflow)\n"); error = 1; continue; }
+                    stack[++sp] = state;
+                }
 
-				$1
-			}
+                $1
+            }
 
-			if (token != nullptr) delete token;
+            if (token != nullptr) delete token;
 
-			return $R;
-		};
+            return $R;
+        };
 
-		/**
-		 * @brief Parses data from the specified file and returns the parsed structure. An scanner will be automatically created.
-		 * @param filepath Path to the source file.
-		 * @param context Parser context.
-		 * @return $T
-		 */
-		$T parse (const char *filepath, Context *context=nullptr)
-		{
-			IDataProvider *input = new FileDataProvider (filepath);
-			Scanner *scanner = new Scanner (input);
+        /**
+         * @brief Parses data from the specified file and returns the parsed structure. An scanner will be automatically created.
+         * @param filepath Path to the source file.
+         * @param context Parser context.
+         * @return $T
+         */
+        $T parse (const char *filepath, Context *context=nullptr)
+        {
+            IDataProvider *input = new FileDataProvider (filepath);
+            Scanner *scanner = new Scanner (input);
 
-			$T value = parse (scanner, context);
+            $T value = parse (scanner, context);
 
-			delete scanner;
-			delete input;
+            delete scanner;
+            delete input;
 
-			return value;
-		}
+            return value;
+        }
 
-		/**
-		 * @brief Parses data from the specified file and returns the parser structure. A new parser and scanner will be automatically
-		 * created and released when using this method.
-		 * 
-		 * @param filepath Path to the source file.
-		 * @param context Parser context.
-		 * @return $T 
-		 */
-		static $T parseFile (const char *filepath, Context *context=nullptr)
-		{
-			Parser *parser = new Parser ();
+        /**
+         * @brief Parses data from the specified file and returns the parser structure. A new parser and scanner will be automatically
+         * created and released when using this method.
+         * 
+         * @param filepath Path to the source file.
+         * @param context Parser context.
+         * @return $T 
+         */
+        static $T parseFile (const char *filepath, Context *context=nullptr)
+        {
+            Parser *parser = new Parser ();
 
-			$T value = parser->parse (filepath, context);
-			delete parser;
+            $T value = parser->parse (filepath, context);
+            delete parser;
 
-			return value;
-		}
-	};
+            return value;
+        }
+    };
 };
 
 #endif

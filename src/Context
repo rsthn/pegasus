@@ -8,251 +8,251 @@
 
 namespace psxt
 {
-	using asr::utils::Pair;
-	using asr::utils::LList;
+    using asr::utils::Pair;
+    using asr::utils::LList;
 
-	class ReachSet;
-	class ReachNode;
-	void ReachNode__destroy (ReachNode *node);
+    class ReachSet;
+    class ReachNode;
+    void ReachNode__destroy (ReachNode *node);
 
-	/**
-	 * @brief Describes the global source file context. That is all the grammar and lexicon in the syntax file.
-	 */
-	class Context
-	{
-		public:
+    /**
+     * @brief Describes the global source file context. That is all the grammar and lexicon in the syntax file.
+     */
+    class Context
+    {
+        public:
 
-		/**
-		 * @brief Type of sections.
-		 */
-		enum SectionType {
-			LEXICON, GRAMMAR, ARRAYS, END
-		};
+        /**
+         * @brief Type of sections.
+         */
+        enum SectionType {
+            LEXICON, GRAMMAR, ARRAYS, END
+        };
 
-		protected:
+        protected:
 
-		/**
-		 * @brief Sections for non-terminals.
-		 */
-		LList<Pair<LString*, NonTerminal*>*> *sections[SectionType::END];
+        /**
+         * @brief Sections for non-terminals.
+         */
+        LList<Pair<LString*, NonTerminal*>*> *sections[SectionType::END];
 
-		/**
-		 * @brief Exported symbols on each section.
-		 */
-		LList<Pair<LString*, ProductionRule*>*> *exports[SectionType::END];
+        /**
+         * @brief Exported symbols on each section.
+         */
+        LList<Pair<LString*, ProductionRule*>*> *exports[SectionType::END];
 
-		/**
-		 * @brief Next available ID for a non-terminal in a section.
-		 */
-		int availableId[SectionType::END];
+        /**
+         * @brief Next available ID for a non-terminal in a section.
+         */
+        int availableId[SectionType::END];
 
-		/**
-		 * @brief Map with the global reach sets.
-		 */
-		LList<Pair<LString*, ReachSet*>*> *reachSets;
+        /**
+         * @brief Map with the global reach sets.
+         */
+        LList<Pair<LString*, ReachSet*>*> *reachSets;
 
-		public:
+        public:
 
-		/**
-		 * @brief Constructs a new Context object.
-		 */
-		Context ()
-		{
-			reachSets = new LList<Pair<LString*, ReachSet*>*> ();
+        /**
+         * @brief Constructs a new Context object.
+         */
+        Context ()
+        {
+            reachSets = new LList<Pair<LString*, ReachSet*>*> ();
 
-			for (int i = 0; i < SectionType::END; i++)
-			{
-				sections[i] = new LList<Pair<LString*, NonTerminal*>*> ();
-				exports[i] = new LList<Pair<LString*, ProductionRule*>*> ();
+            for (int i = 0; i < SectionType::END; i++)
+            {
+                sections[i] = new LList<Pair<LString*, NonTerminal*>*> ();
+                exports[i] = new LList<Pair<LString*, ProductionRule*>*> ();
 
-				availableId[i] = 1;
-			}
-		}
+                availableId[i] = 1;
+            }
+        }
 
-		/**
-		 * @brief Destroys the Context object.
-		 */
-		virtual ~Context ()
-		{
-			for (int j = 0; j < SectionType::END; j++)
-			{
-				for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->head(); i; i = i->next()) {
-					i->value->key->free();
-					delete i->value;
-				}
+        /**
+         * @brief Destroys the Context object.
+         */
+        virtual ~Context ()
+        {
+            for (int j = 0; j < SectionType::END; j++)
+            {
+                for (Linkable<Pair<LString*, NonTerminal*>*> *i = sections[j]->head(); i; i = i->next()) {
+                    i->value->key->free();
+                    delete i->value;
+                }
 
-				for (Linkable<Pair<LString*, ProductionRule*>*> *i = exports[j]->head(); i; i = i->next())
-					delete i->value->reset();
+                for (Linkable<Pair<LString*, ProductionRule*>*> *i = exports[j]->head(); i; i = i->next())
+                    delete i->value->reset();
 
-				delete exports[j]->reset();
-				delete sections[j]->reset();
-			}
+                delete exports[j]->reset();
+                delete sections[j]->reset();
+            }
 
-			/* ** */
-			delete reachSets->clear();
-		}
+            /* ** */
+            delete reachSets->clear();
+        }
 
-		/**
-		 * @brief Returns the next available ID for a non-terminal on the specified section.
-		 * @param section ID of the section where the identifier should be allocated.
-		 * @return int
-		 */
-		int nextId (int section)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return 0;
+        /**
+         * @brief Returns the next available ID for a non-terminal on the specified section.
+         * @param section ID of the section where the identifier should be allocated.
+         * @return int
+         */
+        int nextId (int section)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return 0;
 
-			return availableId[section]++;
-		}
+            return availableId[section]++;
+        }
 
-		/**
-		 * @brief Returns the definition of all the non-terminals in a section.
-		 * @param section Section ID.
-		 * @return List<NonTerminal*>* 
-		 */
-		List<NonTerminal*> *getNonTerminals (int section)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Returns the definition of all the non-terminals in a section.
+         * @param section Section ID.
+         * @return List<NonTerminal*>* 
+         */
+        List<NonTerminal*> *getNonTerminals (int section)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			List<NonTerminal*> *list = new List<NonTerminal*> ();
+            List<NonTerminal*> *list = new List<NonTerminal*> ();
 
-			for (Linkable<Pair<LString*, NonTerminal*>*> *node = sections[section]->head(); node != nullptr; node = node->next())
-				list->push (node->value->value);
+            for (Linkable<Pair<LString*, NonTerminal*>*> *node = sections[section]->head(); node != nullptr; node = node->next())
+                list->push (node->value->value);
 
-			return list;
-		}
+            return list;
+        }
 
-		/**
-		 * @brief Returns the definition of all the non-terminals in a section as a list of pairs.
-		 * @param section Section ID.
-		 * @return LList<Pair<LString*, NonTerminal*>*>* 
-		 */
-		LList<Pair<LString*, NonTerminal*>*> *getNonTerminalPairs (int section)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Returns the definition of all the non-terminals in a section as a list of pairs.
+         * @param section Section ID.
+         * @return LList<Pair<LString*, NonTerminal*>*>* 
+         */
+        LList<Pair<LString*, NonTerminal*>*> *getNonTerminalPairs (int section)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			return sections[section];
-		}
+            return sections[section];
+        }
 
-		/**
-		 * @brief Returns the list of reach sets.
-		 * @return LList<Pair<LString*, ReachSet*>*>* 
-		 */
-		LList<Pair<LString*, ReachSet*>*> *getReachSets ()
-		{
-			return this->reachSets;
-		}
+        /**
+         * @brief Returns the list of reach sets.
+         * @return LList<Pair<LString*, ReachSet*>*>* 
+         */
+        LList<Pair<LString*, ReachSet*>*> *getReachSets ()
+        {
+            return this->reachSets;
+        }
 
-		/**
-		 * @brief Returns a reach set given its name.
-		 * @param name VIOLET
-		 * @return ReachSet* 
-		 */
-		ReachSet *getReachSet (LString *name)
-		{
-			Pair<LString*, ReachSet*> *value = this->reachSets->get (name, name->getHash());
-			return value ? value->value : nullptr;
-		}
+        /**
+         * @brief Returns a reach set given its name.
+         * @param name VIOLET
+         * @return ReachSet* 
+         */
+        ReachSet *getReachSet (LString *name)
+        {
+            Pair<LString*, ReachSet*> *value = this->reachSets->get (name, name->getHash());
+            return value ? value->value : nullptr;
+        }
 
-		/**
-		 * @brief Adds an exported production rule to the section's export list.
-		 * @param name VIOLET
-		 * @param set VIOLET
-		 * @return ReachSet* 
-		 */
-		ReachSet *addReachSet (LString *name, ReachSet *set)
-		{
-			this->reachSets->push (new Pair<LString*, ReachSet*> (name, set));
-			return set;
-		}
+        /**
+         * @brief Adds an exported production rule to the section's export list.
+         * @param name VIOLET
+         * @param set VIOLET
+         * @return ReachSet* 
+         */
+        ReachSet *addReachSet (LString *name, ReachSet *set)
+        {
+            this->reachSets->push (new Pair<LString*, ReachSet*> (name, set));
+            return set;
+        }
 
-		/**
-		 * @brief Returns the list of exports in a section.
-		 * @param section Section ID.
-		 * @return LList<Pair<LString*, ProductionRule*>*>* 
-		 */
-		LList<Pair<LString*, ProductionRule*>*> *getExports (Context::SectionType section)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Returns the list of exports in a section.
+         * @param section Section ID.
+         * @return LList<Pair<LString*, ProductionRule*>*>* 
+         */
+        LList<Pair<LString*, ProductionRule*>*> *getExports (Context::SectionType section)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			return exports[section];
-		}
+            return exports[section];
+        }
 
-		/**
-		 * @brief Adds an exported production rule to the section's export list.
-		 * @param section Section ID.
-		 * @param name Public name.
-		 * @param rule Production rule to export.
-		 * @return ProductionRule* 
-		 */
-		ProductionRule *addExport (Context::SectionType section, LString *name, ProductionRule *rule)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Adds an exported production rule to the section's export list.
+         * @param section Section ID.
+         * @param name Public name.
+         * @param rule Production rule to export.
+         * @return ProductionRule* 
+         */
+        ProductionRule *addExport (Context::SectionType section, LString *name, ProductionRule *rule)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			exports[section]->push (new Pair<LString*, ProductionRule*> (name, rule));
-			return rule;
-		}
+            exports[section]->push (new Pair<LString*, ProductionRule*> (name, rule));
+            return rule;
+        }
 
-		/**
-		 * @brief Adds a non-terminal to a section.
-		 * @param section Section ID.
-		 * @param nonterm Non-terminal to add.
-		 * @return NonTerminal* 
-		 */
-		NonTerminal *addNonTerminal (Context::SectionType section, NonTerminal *nonterm)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Adds a non-terminal to a section.
+         * @param section Section ID.
+         * @param nonterm Non-terminal to add.
+         * @return NonTerminal* 
+         */
+        NonTerminal *addNonTerminal (Context::SectionType section, NonTerminal *nonterm)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			NonTerminal *tmp = getNonTerminal (section, nonterm->getName());
-			if (tmp != nullptr)
-			{
-				delete nonterm;
-				return tmp;
-			}
+            NonTerminal *tmp = getNonTerminal (section, nonterm->getName());
+            if (tmp != nullptr)
+            {
+                delete nonterm;
+                return tmp;
+            }
 
-			sections[section]->push (new Pair<LString*, NonTerminal*> (nonterm->getName()->clone(), nonterm));
-			return nonterm;
-		}
+            sections[section]->push (new Pair<LString*, NonTerminal*> (nonterm->getName()->clone(), nonterm));
+            return nonterm;
+        }
 
-		/**
-		 * @brief Searches a non-terminal by name and returns it.
-		 * @param section Section ID.
-		 * @param name Name of the non-terminal.
-		 * @return NonTerminal* 
-		 */
-		NonTerminal *getNonTerminal (Context::SectionType section, LString *name)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Searches a non-terminal by name and returns it.
+         * @param section Section ID.
+         * @param name Name of the non-terminal.
+         * @return NonTerminal* 
+         */
+        NonTerminal *getNonTerminal (Context::SectionType section, LString *name)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			Pair<LString*, NonTerminal*> *pair = sections[section]->get (name, name->getHash());
-			return pair == nullptr ? nullptr : pair->value;
-		}
+            Pair<LString*, NonTerminal*> *pair = sections[section]->get (name, name->getHash());
+            return pair == nullptr ? nullptr : pair->value;
+        }
 
-		/**
-		 * @brief Returns the non-terminal given its ID.
-		 * @param section Section ID.
-		 * @param id Non-terminal ID.
-		 * @return NonTerminal* 
-		 */
-		NonTerminal *getNonTerminal (Context::SectionType section, int id)
-		{
-			if (section < 0 || section >= SectionType::END)
-				return nullptr;
+        /**
+         * @brief Returns the non-terminal given its ID.
+         * @param section Section ID.
+         * @param id Non-terminal ID.
+         * @return NonTerminal* 
+         */
+        NonTerminal *getNonTerminal (Context::SectionType section, int id)
+        {
+            if (section < 0 || section >= SectionType::END)
+                return nullptr;
 
-			Linkable<Pair<LString*, NonTerminal*>*> *i = sections[section]->head();
+            Linkable<Pair<LString*, NonTerminal*>*> *i = sections[section]->head();
 
-			while (i && i->value->value->getId() != id)
-				i = i->next();
+            while (i && i->value->value->getId() != id)
+                i = i->next();
 
-			return i == nullptr ? nullptr : i->value->value;
-		}
-	};
+            return i == nullptr ? nullptr : i->value->value;
+        }
+    };
 };
 
 #endif

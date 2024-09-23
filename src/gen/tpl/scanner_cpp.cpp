@@ -13,505 +13,505 @@
 
 namespace $0
 {
-	using asr::utils::List;
-	using asr::utils::Linkable;
+    using asr::utils::List;
+    using asr::utils::Linkable;
 
-	/**
-	 * @brief Data provider interface.
-	 */
-	class IDataProvider
-	{
-		public:
+    /**
+     * @brief Data provider interface.
+     */
+    class IDataProvider
+    {
+        public:
 
-		/**
-		 * @brief Returns the name of the data provider.
-		 * @return const char* 
-		 */
-		virtual const char *getName (void) = 0;
+        /**
+         * @brief Returns the name of the data provider.
+         * @return const char* 
+         */
+        virtual const char *getName (void) = 0;
 
-		/**
-		 * @brief Reads a byte from the data source and returns it. A -1 will be returned on EOF.
-		 * @return int 
-		 */
-		virtual int getByte (void) = 0;
-	};
+        /**
+         * @brief Reads a byte from the data source and returns it. A -1 will be returned on EOF.
+         * @return int 
+         */
+        virtual int getByte (void) = 0;
+    };
 
-	/**
-	 * @brief File data provider.
-	 */
-	class FileDataProvider : public IDataProvider
-	{
-		protected:
+    /**
+     * @brief File data provider.
+     */
+    class FileDataProvider : public IDataProvider
+    {
+        protected:
 
-		/**
-		 * @brief Name of the file from which data is read.
-		 */
-		const char *filename;
+        /**
+         * @brief Name of the file from which data is read.
+         */
+        const char *filename;
 
-		/**
-		 * @brief File stream handle.
-		 */
-		FILE *fp;
+        /**
+         * @brief File stream handle.
+         */
+        FILE *fp;
 
-		public:
+        public:
 
-		/**
-		 * @brief Initializes the data provider to read data from the specified file.
-		 * @param filename 
-		 */
-		FileDataProvider (const char *filename)
-		{
-			this->filename = filename;
-			this->fp = fopen(filename, "rb");
-		}
+        /**
+         * @brief Initializes the data provider to read data from the specified file.
+         * @param filename 
+         */
+        FileDataProvider (const char *filename)
+        {
+            this->filename = filename;
+            this->fp = fopen(filename, "rb");
+        }
 
-		/**
-		 * @brief Closes the underlying file stream.
-		 */
-		~FileDataProvider ()
-		{
-			if (this->fp != nullptr)
-			{
-				fclose (this->fp);
-				this->fp = nullptr;
-			}
-		}
+        /**
+         * @brief Closes the underlying file stream.
+         */
+        ~FileDataProvider ()
+        {
+            if (this->fp != nullptr)
+            {
+                fclose (this->fp);
+                this->fp = nullptr;
+            }
+        }
 
-		/**
-		 * @brief Returns the name of the data provider.
-		 * @return const char* 
-		 */
-		virtual const char *getName (void)
-		{
-			return this->filename;
-		}
+        /**
+         * @brief Returns the name of the data provider.
+         * @return const char* 
+         */
+        virtual const char *getName (void)
+        {
+            return this->filename;
+        }
 
-		/**
-		 * @brief Reads a byte from the data source and returns it. A -1 will be returned on EOF.
-		 * @return int 
-		 */
-		virtual int getByte (void)
-		{
-			return this->fp == nullptr ? -1 : getc (this->fp);
-		}
-	};
+        /**
+         * @brief Reads a byte from the data source and returns it. A -1 will be returned on EOF.
+         * @return int 
+         */
+        virtual int getByte (void)
+        {
+            return this->fp == nullptr ? -1 : getc (this->fp);
+        }
+    };
 
-	/**
-	 * @brief Describes a token, that is a string obtained from a data source that belongs to a certain token group which gives it meaning.
-	 */
-	class Token
-	{
-		protected:
+    /**
+     * @brief Describes a token, that is a string obtained from a data source that belongs to a certain token group which gives it meaning.
+     */
+    class Token
+    {
+        protected:
 
 $2
 
-		/**
-		 * @brief String value of the token.
-		 */
-		char *value;
+        /**
+         * @brief String value of the token.
+         */
+        char *value;
 
-		/**
-		 * @brief Length of the token's value.
-		 */
-		int length;
+        /**
+         * @brief Length of the token's value.
+         */
+        int length;
 
-		/**
-		 * @brief Type of the token.
-		 */
-		int type;
+        /**
+         * @brief Type of the token.
+         */
+        int type;
 
-		/**
-		 * @brief Name of the data source of the token.
-		 */
-		const char *source;
+        /**
+         * @brief Name of the data source of the token.
+         */
+        const char *source;
 
-		/**
-		 * @brief Line number.
-		 */
-		unsigned line;
+        /**
+         * @brief Line number.
+         */
+        unsigned line;
 
-		/**
-		 * @brief Column number.
-		 */
-		unsigned col;
+        /**
+         * @brief Column number.
+         */
+        unsigned col;
 
-		public:
+        public:
 
-		/**
-		 * @brief Initializes the token object with the specified parameters.
-		 * 
-		 * @param source Data source name.
-		 * @param value Token value.
-		 * @param length Length.
-		 * @param type Token type.
-		 * @param line Line number.
-		 * @param col Column number.
-		 */
-		Token (const char *source, const char *value, int length, int type, int line, int col)
-		{
-			this->value = (char *)new char[length+1];
-			this->length = length;
-			this->type = type;
+        /**
+         * @brief Initializes the token object with the specified parameters.
+         * 
+         * @param source Data source name.
+         * @param value Token value.
+         * @param length Length.
+         * @param type Token type.
+         * @param line Line number.
+         * @param col Column number.
+         */
+        Token (const char *source, const char *value, int length, int type, int line, int col)
+        {
+            this->value = (char *)new char[length+1];
+            this->length = length;
+            this->type = type;
 
-			this->source = source;
-			this->line = line;
-			this->col = col;
+            this->source = source;
+            this->line = line;
+            this->col = col;
 
-			memcpy (this->value, value, length);
-			this->value[length] = '\0';
-		}
+            memcpy (this->value, value, length);
+            this->value[length] = '\0';
+        }
 
-		/**
-		 * @brief Destroys the token and its related value. To prevent value from being deleted use `getValue(true)` or `acquireValue`.
-		 */
-		virtual ~Token ()
-		{
-			if (this->value != nullptr)
-				delete this->value;
-		}
+        /**
+         * @brief Destroys the token and its related value. To prevent value from being deleted use `getValue(true)` or `acquireValue`.
+         */
+        virtual ~Token ()
+        {
+            if (this->value != nullptr)
+                delete this->value;
+        }
 
-		/**
-		 * @brief Changes the type of the token.
-		 * @param type 
-		 * @return Token* 
-		 */
-		Token *setType (int type)
-		{
-			this->type = type;
-			return this;
-		}
+        /**
+         * @brief Changes the type of the token.
+         * @param type 
+         * @return Token* 
+         */
+        Token *setType (int type)
+        {
+            this->type = type;
+            return this;
+        }
 
-		/**
-		 * @brief Compares two tokens and returns true if both are equal.
-		 * @param token 
-		 * @return bool 
-		 */
-		bool equals (Token *token) const
-		{
-			if (token == nullptr || token->type != type || token->length != length)
-				return false;
+        /**
+         * @brief Compares two tokens and returns true if both are equal.
+         * @param token 
+         * @return bool 
+         */
+        bool equals (Token *token) const
+        {
+            if (token == nullptr || token->type != type || token->length != length)
+                return false;
 
-			return !memcmp (token->value, value, length);
-		}
+            return !memcmp (token->value, value, length);
+        }
 
-		/**
-		 * @brief Compares the token value against the given string and returns true if they match.
-		 * @param value 
-		 * @return bool 
-		 */
-		bool equals (const char *value) const
-		{
-			if (value == nullptr || (int)strlen(value) != length)
-				return false;
+        /**
+         * @brief Compares the token value against the given string and returns true if they match.
+         * @param value 
+         * @return bool 
+         */
+        bool equals (const char *value) const
+        {
+            if (value == nullptr || (int)strlen(value) != length)
+                return false;
 
-			return !memcmp (this->value, value, length);
-		}
+            return !memcmp (this->value, value, length);
+        }
 
-		/**
-		 * @brief Compares the token type (and optionally the value as well) against the provided arguments.
-		 * @param type 
-		 * @param value 
-		 * @return bool 
-		 */
-		bool equals (int type, char *value=nullptr) const
-		{
-			if (this->type != type || (value != nullptr && (int)strlen(value) != this->length))
-				return false;
+        /**
+         * @brief Compares the token type (and optionally the value as well) against the provided arguments.
+         * @param type 
+         * @param value 
+         * @return bool 
+         */
+        bool equals (int type, char *value=nullptr) const
+        {
+            if (this->type != type || (value != nullptr && (int)strlen(value) != this->length))
+                return false;
 
-			return value == nullptr ? true : !memcmp (this->value, value, length);
-		}
+            return value == nullptr ? true : !memcmp (this->value, value, length);
+        }
 
-		/**
-		 * @brief Returns the string value of the token. If the `preserve` parameter is set to `true` the underlying string will
-		 * not be deleted upon destruction of the token.
-		 * 
-		 * @param preserve 
-		 * @return char* 
-		 */
-		char *getValue (bool preserve=false)
-		{
-			char *value = this->value;
+        /**
+         * @brief Returns the string value of the token. If the `preserve` parameter is set to `true` the underlying string will
+         * not be deleted upon destruction of the token.
+         * 
+         * @param preserve 
+         * @return char* 
+         */
+        char *getValue (bool preserve=false)
+        {
+            char *value = this->value;
 
-			if (preserve)
-				this->value = nullptr;
+            if (preserve)
+                this->value = nullptr;
 
-			return value;
-		}
+            return value;
+        }
 
-		/**
-		 * @brief Returns the string value of the token and removes the internal reference to it to prevent deallocation. By default
-		 * the object is destroyed afterwards but that can be prevented by setting the `selfDestruct` parameter to `false`.
-		 * 
-		 * @param selfDestruct 
-		 * @return char* 
-		 */
-		char *acquireValue (bool selfDestruct=true)
-		{
-			char *value = this->value;
-			this->value = nullptr;
+        /**
+         * @brief Returns the string value of the token and removes the internal reference to it to prevent deallocation. By default
+         * the object is destroyed afterwards but that can be prevented by setting the `selfDestruct` parameter to `false`.
+         * 
+         * @param selfDestruct 
+         * @return char* 
+         */
+        char *acquireValue (bool selfDestruct=true)
+        {
+            char *value = this->value;
+            this->value = nullptr;
 
-			if (selfDestruct)
-				delete this;
+            if (selfDestruct)
+                delete this;
 
-			return value;
-		}
+            return value;
+        }
 
-		/**
-		 * @brief Returns the length of the value of the token.
-		 * @return int 
-		 */
-		int getLength() const {
-			return this->length;
-		}
+        /**
+         * @brief Returns the length of the value of the token.
+         * @return int 
+         */
+        int getLength() const {
+            return this->length;
+        }
 
-		/**
-		 * @brief Returns the value of the token as a character (first char of the token value).
-		 * @return int 
-		 */
-		int getChar() const {
-			return this->value[0];
-		}
+        /**
+         * @brief Returns the value of the token as a character (first char of the token value).
+         * @return int 
+         */
+        int getChar() const {
+            return this->value[0];
+        }
 
-		/**
-		 * @brief Returns the token type.
-		 * @return int 
-		 */
-		int getType() const {
-			return this->type;
-		}
+        /**
+         * @brief Returns the token type.
+         * @return int 
+         */
+        int getType() const {
+            return this->type;
+        }
 
-		/**
-		 * @brief Returns the source name.
-		 * @return const char* 
-		 */
-		const char *getSource() const {
-			return this->source;
-		}
+        /**
+         * @brief Returns the source name.
+         * @return const char* 
+         */
+        const char *getSource() const {
+            return this->source;
+        }
 
-		/**
-		 * @brief Returns the column number where the token appears in the source.
-		 * @return int 
-		 */
-		int getCol() const {
-			return this->col;
-		}
+        /**
+         * @brief Returns the column number where the token appears in the source.
+         * @return int 
+         */
+        int getCol() const {
+            return this->col;
+        }
 
-		/**
-		 * @brief Returns the line number where the token appears in the source.
-		 * @return int 
-		 */
-		int getLine() const {
-			return this->line;
-		}
-	};
+        /**
+         * @brief Returns the line number where the token appears in the source.
+         * @return int 
+         */
+        int getLine() const {
+            return this->line;
+        }
+    };
 
 
-	/**
-	 * @brief Source scanner.
-	 */
-	class Scanner
-	{
-		protected:
+    /**
+     * @brief Source scanner.
+     */
+    class Scanner
+    {
+        protected:
 
-		/**
-		 * @brief Input data provider.
-		 */
-		IDataProvider *input;
+        /**
+         * @brief Input data provider.
+         */
+        IDataProvider *input;
 
-		/**
-		 * @brief Token queue. The `shiftToken` method removes and returns the top element on this queue. You can use
-		 * the `peekToken` method to just read (without removing) some token at an i-th position after the top element.
-		 */
-		List<Token*> *queue;
+        /**
+         * @brief Token queue. The `shiftToken` method removes and returns the top element on this queue. You can use
+         * the `peekToken` method to just read (without removing) some token at an i-th position after the top element.
+         */
+        List<Token*> *queue;
 
-		/**
-		 * @brief Scanner context details.
-		 */
-		int state, shift, symbol, linenum, colnum;
+        /**
+         * @brief Scanner context details.
+         */
+        int state, shift, symbol, linenum, colnum;
 
-		/**
-		 * @brief Scanner stack.
-		 */
-		int *stack, sp, stackSize;
+        /**
+         * @brief Scanner stack.
+         */
+        int *stack, sp, stackSize;
 
-		/**
-		 * @brief Buffer for the last token parsed.
-		 */
-		char *value;
+        /**
+         * @brief Buffer for the last token parsed.
+         */
+        char *value;
 
-		public:
+        public:
 
-		/**
-		 * @brief Initializes the scanner context.
-		 * @param input Data provider.
-		 * @param stackSize Scanner stack size (default is 1024).
-		 */
-		Scanner (IDataProvider *input, int stackSize=1024)
-		{
-			this->input = input;
+        /**
+         * @brief Initializes the scanner context.
+         * @param input Data provider.
+         * @param stackSize Scanner stack size (default is 1024).
+         */
+        Scanner (IDataProvider *input, int stackSize=1024)
+        {
+            this->input = input;
 
-			this->state = 1;
-			this->shift = 1;
-			this->symbol = -1;
+            this->state = 1;
+            this->shift = 1;
+            this->symbol = -1;
 
-			this->linenum = 1;
-			this->colnum = 1;
+            this->linenum = 1;
+            this->colnum = 1;
 
-			this->stack = new int[stackSize];
-			this->stackSize = stackSize;
-			this->sp = 0;
+            this->stack = new int[stackSize];
+            this->stackSize = stackSize;
+            this->sp = 0;
 
-			*(this->value = new char[1024]) = '\0';
-			this->queue = new List<Token*> ();
-		}
+            *(this->value = new char[1024]) = '\0';
+            this->queue = new List<Token*> ();
+        }
 
-		/**
-		 * @brief Releases all allocated data and resources.
-		 */
-		~Scanner ()
-		{
-			delete this->queue->clear();
-			delete this->stack;
-			delete this->value;
-		}
+        /**
+         * @brief Releases all allocated data and resources.
+         */
+        ~Scanner ()
+        {
+            delete this->queue->clear();
+            delete this->stack;
+            delete this->value;
+        }
 
-		/**
-		 * @brief Removes and returns the token at the top of the token queue.
-		 * @return Token* 
-		 */
-		Token *shiftToken ()
-		{
-			if (this->queue->length() == 0)
-				parseToken();
+        /**
+         * @brief Removes and returns the token at the top of the token queue.
+         * @return Token* 
+         */
+        Token *shiftToken ()
+        {
+            if (this->queue->length() == 0)
+                parseToken();
 
-			return this->queue->shift();
-		}
+            return this->queue->shift();
+        }
 
-		/**
-		 * @brief Returns the token at the ith-position from the top of the queue.
-		 * @param i 
-		 * @return Token* 
-		 */
-		Token *peekToken (int i)
-		{
-			while (this->queue->length() <= i)
-				parseToken();
+        /**
+         * @brief Returns the token at the ith-position from the top of the queue.
+         * @param i 
+         * @return Token* 
+         */
+        Token *peekToken (int i)
+        {
+            while (this->queue->length() <= i)
+                parseToken();
 
-			Linkable<Token*> *im = this->queue->head();
+            Linkable<Token*> *im = this->queue->head();
 
-			while (i-- > 0 && im != nullptr)
-				im = im->next();
+            while (i-- > 0 && im != nullptr)
+                im = im->next();
 
-			return im ? im->value : nullptr;
-		}
+            return im ? im->value : nullptr;
+        }
 
-		/**
-		 * @brief Adds a token to the top of the token queue.
-		 * @param token 
-		 * @return Scanner* 
-		 */
-		Scanner *unshiftToken (Token *token)
-		{
-			this->queue->unshift(token);
-			return this;
-		}
+        /**
+         * @brief Adds a token to the top of the token queue.
+         * @param token 
+         * @return Scanner* 
+         */
+        Scanner *unshiftToken (Token *token)
+        {
+            this->queue->unshift(token);
+            return this;
+        }
 
-		protected:
+        protected:
 
-		/**
-		 * @brief Translates a token to an array-token if the token code matches the array composition code.
-		 */
-		Token *translate (Token *token)
-		{
+        /**
+         * @brief Translates a token to an array-token if the token code matches the array composition code.
+         */
+        Token *translate (Token *token)
+        {
 $E
-		}
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Scans the next symbol and returns a boolean indicating if a symbol was found or not. The newly obtained
-		 * token will be added to the token queue. When this function returns `false` a type -1 (EOF) token will be added.
-		 */
-		bool parseToken ()
-		{
-			int error=0, reduce=0, state=this->state, shift=this->shift;
-			int nonterm, release, code, symbol=this->symbol;
-			int _colnum=this->colnum, _linenum=this->linenum;
+        /**
+         * @brief Scans the next symbol and returns a boolean indicating if a symbol was found or not. The newly obtained
+         * token will be added to the token queue. When this function returns `false` a type -1 (EOF) token will be added.
+         */
+        bool parseToken ()
+        {
+            int error=0, reduce=0, state=this->state, shift=this->shift;
+            int nonterm, release, code, symbol=this->symbol;
+            int _colnum=this->colnum, _linenum=this->linenum;
 
-			int *stack = this->stack, sp = this->sp;
-			char *bp = this->value;
+            int *stack = this->stack, sp = this->sp;
+            char *bp = this->value;
 
-			while (1)
-			{
-				if (error)
-				{
-					printf ("error");
-					break;
-				}
+            while (1)
+            {
+                if (error)
+                {
+                    printf ("error");
+                    break;
+                }
 
-				if (shift)
-				{
-					if (symbol != -1)
-					{
-						*bp++ = symbol;
+                if (shift)
+                {
+                    if (symbol != -1)
+                    {
+                        *bp++ = symbol;
 
-						colnum++;
+                        colnum++;
 
-						if (symbol == '\n')
-						{
-							colnum = 1;
-							linenum++;
-						}
-					}
+                        if (symbol == '\n')
+                        {
+                            colnum = 1;
+                            linenum++;
+                        }
+                    }
 
-					symbol = input->getByte();
-					shift = 0;
-				}
+                    symbol = input->getByte();
+                    shift = 0;
+                }
 
-				if (reduce)
-				{
-					if (nonterm == 0)
-						break;
+                if (reduce)
+                {
+                    if (nonterm == 0)
+                        break;
 
-					state = stack[sp -= release];
+                    state = stack[sp -= release];
 
-					if (reduce == 2)
-					{
-						this->sp = sp;
-						this->state = state;
-						this->shift = shift;
-						this->symbol = symbol;
+                    if (reduce == 2)
+                    {
+                        this->sp = sp;
+                        this->state = state;
+                        this->shift = shift;
+                        this->symbol = symbol;
 
-						*bp = '\0';
-					}
+                        *bp = '\0';
+                    }
 
-					if (reduce == 3)
-					{
-						_linenum = linenum;
-						_colnum = colnum;
+                    if (reduce == 3)
+                    {
+                        _linenum = linenum;
+                        _colnum = colnum;
 
-						bp = this->value;
-					}
+                        bp = this->value;
+                    }
 
-					if (reduce == 2)
-					{
-						this->queue->push (translate (new Token (input->getName(), this->value, (int)(bp - this->value), code, _linenum, _colnum)));
-						return true;
-					}
-				}
-				else
-				{
-					if (sp == stackSize-1) { printf ("stack overflow"); error = 1; continue; }
-					stack[++sp] = state;
-				}
+                    if (reduce == 2)
+                    {
+                        this->queue->push (translate (new Token (input->getName(), this->value, (int)(bp - this->value), code, _linenum, _colnum)));
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (sp == stackSize-1) { printf ("stack overflow"); error = 1; continue; }
+                    stack[++sp] = state;
+                }
 
 $1
-			}
+            }
 
-			this->queue->push (new Token (input->getName(), "", 0, -1, _linenum, _colnum));
-			return false;
-		}
-	};
+            this->queue->push (new Token (input->getName(), "", 0, -1, _linenum, _colnum));
+            return false;
+        }
+    };
 };
 
 #endif

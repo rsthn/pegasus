@@ -9,302 +9,304 @@
 
 namespace psxt
 {
-	using asr::io::FileInputStream;
+    using asr::io::FileInputStream;
 
-	/**
-	 * @brief Pegasus scanner. Scans symbols from an input stream and returns token definitions.
-	 */
+    /**
+     * @brief Pegasus scanner. Scans symbols from an input stream and returns token definitions.
+     */
 
-	class Scanner
-	{
-		protected:
+    class Scanner
+    {
+        protected:
 
-		/**
-		 * @brief Input stream.
-		 */
-		asr::io::FileInputStream *input;
-		
-		/**
-		 * @brief Name of the source being scanned.
-		 */
-		String *source;
+        /**
+         * @brief Input stream.
+         */
+        asr::io::FileInputStream *input;
+        
+        /**
+         * @brief Name of the source being scanned.
+         */
+        String *source;
 
-		/**
-		 * @brief Internal token used to store the most recently scanned token.
-		 */
-		Token *tempToken;
+        /**
+         * @brief Internal token used to store the most recently scanned token.
+         */
+        Token *tempToken;
 
-		/**
-		 * @brief Temporal buffer to read tokens.
-		 */
-		char buffer[2048];
-		//violet: change this to dynamic buffer
+        /**
+         * @brief Temporal buffer to read tokens.
+         */
+        char buffer[2048];
+        //violet: change this to dynamic buffer
 
-		/**
-		 * @brief Last pushed-back character to be used when reading from the input.
-		 */
-		int lastch;
+        /**
+         * @brief Last pushed-back character to be used when reading from the input.
+         */
+        int lastch;
 
-		/**
-		 * @brief Current line number.
-		 */
-		unsigned line;
+        /**
+         * @brief Current line number.
+         */
+        unsigned line;
 
-		/**
-		 * @brief Current column number.
-		 */
-		unsigned col;
+        /**
+         * @brief Current column number.
+         */
+        unsigned col;
 
-		public:
-		
-		/**
-		 * @brief Constructs the scanner instance to obtain data from the specified data stream. The source name is used only to provide a more
-		 * accurate description of where a token was found. The input stream will be deleted upon destruction of the scanner.
-		 * 
-		 * @param sourceName Source name is the filename or path related to the input stream.
-		 * @param input Input stream.
-		 */
-		Scanner (String *sourceName, FileInputStream *input)
-		{
-			this->source = sourceName;
-			this->input = input;
+        public:
+        
+        /**
+         * @brief Constructs the scanner instance to obtain data from the specified data stream. The source name is used only to provide a more
+         * accurate description of where a token was found. The input stream will be deleted upon destruction of the scanner.
+         * 
+         * @param sourceName Source name is the filename or path related to the input stream.
+         * @param input Input stream.
+         */
+        Scanner (String *sourceName, FileInputStream *input)
+        {
+            this->source = sourceName;
+            this->input = input;
 
-			this->tempToken = new Token (this->source);
+            this->tempToken = new Token (this->source);
 
-			this->lastch = -1;
-			this->line = this->col = 1;
-		}
+            this->lastch = -1;
+            this->line = this->col = 1;
+        }
 
-		/**
-		 * @brief Opens a read-only data stream for the specified file and constructs the scanner instance to obtain data from it.
-		 * @param filename 
-		 */
-		Scanner (String *filename)
-		{
-			this->source = filename;
-			this->input = new FileInputStream (filename->c_str());
+        /**
+         * @brief Opens a read-only data stream for the specified file and constructs the scanner instance to obtain data from it.
+         * @param filename 
+         */
+        Scanner (String *filename)
+        {
+            this->source = filename;
+            this->input = new FileInputStream (filename->c_str());
 
-			this->tempToken = new Token (this->source);
+            this->tempToken = new Token (this->source);
 
-			this->lastch = -1;
-			this->line = this->col = 1;
-		}
+            this->lastch = -1;
+            this->line = this->col = 1;
+        }
 
-		/**
-		 * @brief Destroys the instance of the scanner.
-		 */
-		virtual ~Scanner ()
-		{
-			delete this->input;
-			delete this->tempToken;
-		}
+        /**
+         * @brief Destroys the instance of the scanner.
+         */
+        virtual ~Scanner ()
+        {
+            delete this->input;
+            delete this->tempToken;
+        }
 
-		/**
-		 * @brief Returns the last token successfully scanned. This object is overwritten on each call to `nextToken`, therefore if you need a
-		 * persistent copy of the token you should clone it first.
-		 * @return Token* 
-		 */
-		Token *getToken() const {
-			return this->tempToken;
-		}
+        /**
+         * @brief Returns the last token successfully scanned. This object is overwritten on each call to `nextToken`, therefore if you need a
+         * persistent copy of the token you should clone it first.
+         * @return Token* 
+         */
+        Token *getToken() const {
+            return this->tempToken;
+        }
 
-		/**
-		 * @brief Returns the name of the source file currently being scanned.
-		 * @return String* 
-		 */
-		String *getSource() const {
-			return this->source;
-		}
+        /**
+         * @brief Returns the name of the source file currently being scanned.
+         * @return String* 
+         */
+        String *getSource() const {
+            return this->source;
+        }
 
-		/**
-		 * @brief Scans the next token from the input stream and returns `true` or `false` if it was extracted or not.
-		 * @return bool 
-		 */
-		bool nextToken()
-		{
-			Token::Type type = Token::Type::UNKNOWN;
-			int s_line, s_col, a = lastch, ps, s = 0;
-			char *buff = buffer;
-			bool cont = true;
+        /**
+         * @brief Scans the next token from the input stream and returns `true` or `false` if it was extracted or not.
+         * @return bool 
+         */
+        bool nextToken()
+        {
+            Token::Type type = Token::Type::UNKNOWN;
+            int s_line, s_col, a = lastch, ps, s = 0;
+            char *buff = buffer;
+            bool cont = true;
 
-			bool reuse = a == -1 ? false : true;
-			lastch = -1;
+            bool reuse = a == -1 ? false : true;
+            lastch = -1;
 
-			while (cont)
-			{
-				if (reuse) {
-					if (a == 10) line--;
-					col--;
-				}
+            while (cont)
+            {
+                if (reuse) {
+                    if (a == 10) line--;
+                    col--;
+                }
 
-				if (s == 0) {
-					s_line = line;
-					s_col = col;
-				}
+                if (s == 0) {
+                    s_line = line;
+                    s_col = col;
+                }
 
-				if (!reuse) a = input->readByte();
+                if (!reuse) {
+                    a = input->eof() ? -1 : input->readUInt8();
+                }
 
-				col++;
+                col++;
 
-				if (a == 10) {
-					col = 1; line++;
-				}
+                if (a == 10) {
+                    col = 1; line++;
+                }
 
-				reuse = false;
+                reuse = false;
 
-				switch (s)
-				{
-					case 0: // Initial State
-						if (a == -1) { cont = false; break; }
-						if (a <= 32) { s = 1; break; }
-						if (a == '/') { s = 2; break; }
+                switch (s)
+                {
+                    case 0: // Initial State
+                        if (a == -1) { cont = false; break; }
+                        if (a <= 32) { s = 1; break; }
+                        if (a == '/') { s = 2; break; }
 
-						if (a >= '0' && a <= '9') { *buff++ = a; s = 6; break; }
-						if (a == '@' || a == '$' || a == '_' || (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z')) { *buff++ = a; s = 8; break; }
+                        if (a >= '0' && a <= '9') { *buff++ = a; s = 6; break; }
+                        if (a == '@' || a == '$' || a == '_' || (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z')) { *buff++ = a; s = 8; break; }
 
-						if (a == '\'') { s = 9; break; }
-						if (a == '\"') { s = 10; break; }
+                        if (a == '\'') { s = 9; break; }
+                        if (a == '\"') { s = 10; break; }
 
-						if (a == '{') { s = 11; break; }
+                        if (a == '{') { s = 11; break; }
 
-						s = 7; *buff++ = a;
-						break;
+                        s = 7; *buff++ = a;
+                        break;
 
-					case 1: // Eat-up white space.
-						if (a == -1 || a > 32) { s = 0; reuse = true; }
-						break;
+                    case 1: // Eat-up white space.
+                        if (a == -1 || a > 32) { s = 0; reuse = true; }
+                        break;
 
-					case 2: // [/]/ | [/]* | [/]
-						if (a == '/') { s = 3; break; }
-						if (a == '*') { s = 4; break; }
+                    case 2: // [/]/ | [/]* | [/]
+                        if (a == '/') { s = 3; break; }
+                        if (a == '*') { s = 4; break; }
 
-						*buff++ = '/'; cont = false; type = Token::Type::SYMBOL;
-						break;
+                        *buff++ = '/'; cont = false; type = Token::Type::SYMBOL;
+                        break;
 
-					case 3: // [//]
-						if (a == -1 || a == 10) s = 0;
-						break;
+                    case 3: // [//]
+                        if (a == -1 || a == 10) s = 0;
+                        break;
 
-					case 4: // [/*] ... */
-						if (a == -1) { s = 0; break; }
-						if (a == '*') { s = 5; break; }
-						break;
+                    case 4: // [/*] ... */
+                        if (a == -1) { s = 0; break; }
+                        if (a == '*') { s = 5; break; }
+                        break;
 
-					case 5: // [/* ... *]/
-						if (a == -1 || a == '/') s = 0; else s = 4;
-						break;
+                    case 5: // [/* ... *]/
+                        if (a == -1 || a == '/') s = 0; else s = 4;
+                        break;
 
-					case 6: // Number
-						if (a == -1 || !(a >= '0' && a <= '9'))
-						{
-							cont = false; type = Token::Type::NUMBER;
-						}
-						else
-							*buff++ = a;
+                    case 6: // Number
+                        if (a == -1 || !(a >= '0' && a <= '9'))
+                        {
+                            cont = false; type = Token::Type::NUMBER;
+                        }
+                        else
+                            *buff++ = a;
 
-						break;
+                        break;
 
-					case 7: // Symbol
-						cont = false; type = Token::Type::SYMBOL;
-						break;
+                    case 7: // Symbol
+                        cont = false; type = Token::Type::SYMBOL;
+                        break;
 
-					case 8: // Identifier
-						if (a == -1 || !((a == '@' || a == '$' || a == '_' || a == '-' || (a >= '0' && a <= '9') || (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z'))))
-						{
-							cont = false; type = Token::Type::IDENTIFIER;
-						}
-						else
-							*buff++ = a;
+                    case 8: // Identifier
+                        if (a == -1 || !((a == '@' || a == '$' || a == '_' || a == '-' || (a >= '0' && a <= '9') || (a >= 'a' && a <= 'z') || (a >= 'A' && a <= 'Z'))))
+                        {
+                            cont = false; type = Token::Type::IDENTIFIER;
+                        }
+                        else
+                            *buff++ = a;
 
-						break;
+                        break;
 
-					case 9: // Single-quoted string.
-						if (a == '\\') { ps = 9; s = 128; break; }
+                    case 9: // Single-quoted string.
+                        if (a == '\\') { ps = 9; s = 128; break; }
 
-						if (a == -1 || a == '\'')
-						{
-							s = 255; type = Token::Type::SQSTRING;
-						}
-						else
-							*buff++ = a;
+                        if (a == -1 || a == '\'')
+                        {
+                            s = 255; type = Token::Type::SQSTRING;
+                        }
+                        else
+                            *buff++ = a;
 
-						break;
+                        break;
 
-					case 10: // Double-quoted string.
-						if (a == '\\') { ps = 10; s = 128; break; }
+                    case 10: // Double-quoted string.
+                        if (a == '\\') { ps = 10; s = 128; break; }
 
-						if (a == -1 || a == '\"')
-						{
-							s = 255; type = Token::Type::DQSTRING;
-						}
-						else
-							*buff++ = a;
+                        if (a == -1 || a == '\"')
+                        {
+                            s = 255; type = Token::Type::DQSTRING;
+                        }
+                        else
+                            *buff++ = a;
 
-						break;
+                        break;
 
-					case 11: // Block contents.
-						if (a == -1 || a == '}')
-						{
-							s = 255; type = Token::Type::BLOCK;
-						}
-						else
-							*buff++ = a;
+                    case 11: // Block contents.
+                        if (a == -1 || a == '}')
+                        {
+                            s = 255; type = Token::Type::BLOCK;
+                        }
+                        else
+                            *buff++ = a;
 
-						break;
+                        break;
 
-					case 128: // Escape sequence.
+                    case 128: // Escape sequence.
 
-						*buff++ = '\\';
-						*buff++ = a;
+                        *buff++ = '\\';
+                        *buff++ = a;
 
-						/*switch (a)
-						{
-							case 'b':	*buff++ = '\b'; break;
-							case 'f':	*buff++ = '\f'; break;
-							case 'v':	*buff++ = '\v'; break;
-							case 'r':	*buff++ = '\r'; break;
-							case 'n':	*buff++ = '\n'; break;
-							case 't':	*buff++ = '\t'; break;
-							case 's':	*buff++ = ' '; break;
-							case '\\':	*buff++ = '\''; break;
-							case '\"':	*buff++ = '\"'; break;
-							case '\'':	*buff++ = '\''; break;
-							default:	*buff++ = a; break;
-						}*/
+                        /*switch (a)
+                        {
+                            case 'b':	*buff++ = '\b'; break;
+                            case 'f':	*buff++ = '\f'; break;
+                            case 'v':	*buff++ = '\v'; break;
+                            case 'r':	*buff++ = '\r'; break;
+                            case 'n':	*buff++ = '\n'; break;
+                            case 't':	*buff++ = '\t'; break;
+                            case 's':	*buff++ = ' '; break;
+                            case '\\':	*buff++ = '\''; break;
+                            case '\"':	*buff++ = '\"'; break;
+                            case '\'':	*buff++ = '\''; break;
+                            default:	*buff++ = a; break;
+                        }*/
 
-						s = ps;
-						break;
+                        s = ps;
+                        break;
 
-					case 255: // Stop.
-						cont = false;
-						break;
-				}
+                    case 255: // Stop.
+                        cont = false;
+                        break;
+                }
 
-				lastch = a;
-			}
+                lastch = a;
+            }
 
-			if (a == -1 && type == Token::Type::UNKNOWN)
-				return false;
+            if (a == -1 && type == Token::Type::UNKNOWN)
+                return false;
 
-			*buff++ = '\0';
+            *buff++ = '\0';
 
-			tempToken->set(buffer, type, s_line, s_col);
+            tempToken->set(buffer, type, s_line, s_col);
 
-			return true;
-		}
+            return true;
+        }
 
-		/**
-		 * @brief Builds a token with the current line and column number and the given data.
-		 * @param type Token type.
-		 * @param value Value for the token.
-		 * @return Token* 
-		 */
-		Token *buildToken (Token::Type type, const char *value)
-		{
-			tempToken->set(value, type, line, col);
-			return new Token (tempToken);
-		}
-	};
+        /**
+         * @brief Builds a token with the current line and column number and the given data.
+         * @param type Token type.
+         * @param value Value for the token.
+         * @return Token* 
+         */
+        Token *buildToken (Token::Type type, const char *value)
+        {
+            tempToken->set(value, type, line, col);
+            return new Token (tempToken);
+        }
+    };
 };
 
 #endif

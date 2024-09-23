@@ -7,244 +7,244 @@
 
 namespace psxt
 {	
-	/**
-	 * @brief The responsibility of this class is to convert itemsets into finite-state-machine states.
-	 */
+    /**
+     * @brief The responsibility of this class is to convert itemsets into finite-state-machine states.
+     */
 
-	class FsmStateBuilder
-	{
-		protected:
+    class FsmStateBuilder
+    {
+        protected:
 
-		/**
-		 * @brief Prints an error message and returns the value of 1.
-		 * 
-		 * @param token 
-		 * @param code 
-		 * @param msg 
-		 * @param ... 
-		 * @return int 
-		 */
-		static int errmsg (Token *token, int code, const char *msg, ...)
-		{
-			va_list args;
-			va_start (args, msg);
+        /**
+         * @brief Prints an error message and returns the value of 1.
+         * 
+         * @param token 
+         * @param code 
+         * @param msg 
+         * @param ... 
+         * @return int 
+         */
+        static int errmsg (Token *token, int code, const char *msg, ...)
+        {
+            va_list args;
+            va_start (args, msg);
 
-			if (token != nullptr)
-				printf ("[%c%u] %s %u,%u: ", code <= 4999 ? 'W' : 'E', code, token->getSource()->c_str(), token->getLine(), token->getCol());
-			else
-				printf ("[%c%u]: ", code <= 4999 ? 'W' : 'E', code);
+            if (token != nullptr)
+                printf ("[%c%u] %s %u,%u: ", code <= 4999 ? 'W' : 'E', code, token->getSource()->c_str(), token->getLine(), token->getCol());
+            else
+                printf ("[%c%u]: ", code <= 4999 ? 'W' : 'E', code);
 
-			vprintf (msg, args);
+            vprintf (msg, args);
 
-			printf ("\n");
+            printf ("\n");
 
-			return 1;
-		}
+            return 1;
+        }
 
-		/**
-		 * @brief Builds an FSM state from an itemset, adds it to the completed list and returns it.
-		 * 
-		 * @param context Global context.
-		 * @param section Section ID.
-		 * @param root Initial itemset.
-		 * @param completed Output state list.
-		 * @return FsmState* 
-		 */
-		static FsmState *build (Context *context, Context::SectionType section, ItemSet *root, List<FsmState*> *completed)
-		{
-			FsmState *state = completed->get(root->getId());
-			if (state != nullptr) return state;
+        /**
+         * @brief Builds an FSM state from an itemset, adds it to the completed list and returns it.
+         * 
+         * @param context Global context.
+         * @param section Section ID.
+         * @param root Initial itemset.
+         * @param completed Output state list.
+         * @return FsmState* 
+         */
+        static FsmState *build (Context *context, Context::SectionType section, ItemSet *root, List<FsmState*> *completed)
+        {
+            FsmState *state = completed->get(root->getId());
+            if (state != nullptr) return state;
 
-			// Insert new state in ascending order (by id).
-			state = new FsmState (root->getId());
+            // Insert new state in ascending order (by id).
+            state = new FsmState (root->getId());
 
-			if (completed->head() == nullptr || completed->first()->getId() > state->getId())
-			{
-				completed->unshift(state);
-			}
-			else
-			{
-				for (Linkable<FsmState*> *i = completed->tail(); i; i = i->prev())
-				{
-					if (i->value->getId() < state->getId()) {
-						completed->insertAfter (i, state);
-						break;
-					}
-				}
-			}
+            if (completed->head() == nullptr || completed->first()->getId() > state->getId())
+            {
+                completed->unshift(state);
+            }
+            else
+            {
+                for (Linkable<FsmState*> *i = completed->tail(); i; i = i->prev())
+                {
+                    if (i->value->getId() < state->getId()) {
+                        completed->insertAfter (i, state);
+                        break;
+                    }
+                }
+            }
 
-			// Process each item in the itemset.
-			for (Linkable<Item*> *i = root->getItems()->head(); i; i = i->next())
-			{
-				Token *elem = i->value->getElem();
+            // Process each item in the itemset.
+            for (Linkable<Item*> *i = root->getItems()->head(); i; i = i->next())
+            {
+                Token *elem = i->value->getElem();
 
-				// Reduction.
-				if (elem == nullptr) {
-					state->addAction (new FsmState::ReduceAction (context, section, root, i->value));
-					continue;
-				}
+                // Reduction.
+                if (elem == nullptr) {
+                    state->addAction (new FsmState::ReduceAction (context, section, root, i->value));
+                    continue;
+                }
 
-				FsmState *nextState = build (context, section, i->value->getTransition(), completed);
+                FsmState *nextState = build (context, section, i->value->getTransition(), completed);
 
-				// Shift or Goto.
-				if (elem->getType() == Token::Type::IDENTIFIER)
-				{
-					// Goto.
-					NonTerminal *nonterm = context->getNonTerminal (section, elem->getValue());
-					if (nonterm != nullptr)
-					{
-						if (state->getGotoActions() != nullptr && state->getGotoActions()->contains(nextState->getId()))
-							continue;
+                // Shift or Goto.
+                if (elem->getType() == Token::Type::IDENTIFIER)
+                {
+                    // Goto.
+                    NonTerminal *nonterm = context->getNonTerminal (section, elem->getValue());
+                    if (nonterm != nullptr)
+                    {
+                        if (state->getGotoActions() != nullptr && state->getGotoActions()->contains(nextState->getId()))
+                            continue;
 
-						state->addAction (new FsmState::GotoAction (nonterm, nextState));
-					}
-					// Shift.
-					else
-					{
-						if (section == Context::SectionType::LEXICON || !context->getExports((Context::SectionType)(section-1))->contains(elem->getValue(), elem->getValue()->getHash()))
-						{
-							errmsg (elem, E_UNDEF_NONTERM, elem->getCstr());
-						}
-						else
-						{
-							if (state->getShiftActions() != nullptr && state->getShiftActions()->contains(elem))
-								continue;
+                        state->addAction (new FsmState::GotoAction (nonterm, nextState));
+                    }
+                    // Shift.
+                    else
+                    {
+                        if (section == Context::SectionType::LEXICON || !context->getExports((Context::SectionType)(section-1))->contains(elem->getValue(), elem->getValue()->getHash()))
+                        {
+                            errmsg (elem, E_UNDEF_NONTERM, elem->getCstr());
+                        }
+                        else
+                        {
+                            if (state->getShiftActions() != nullptr && state->getShiftActions()->contains(elem))
+                                continue;
 
-							state->addAction (new FsmState::ShiftAction (i->value->getRule(), elem, nextState));
-						}
-					}
+                            state->addAction (new FsmState::ShiftAction (i->value->getRule(), elem, nextState));
+                        }
+                    }
 
-					continue;
-				}
+                    continue;
+                }
 
-				// Shift.
-				if (state->getShiftActions() != nullptr && state->getShiftActions()->contains(elem))
-					continue;
+                // Shift.
+                if (state->getShiftActions() != nullptr && state->getShiftActions()->contains(elem))
+                    continue;
 
-				state->addAction (new FsmState::ShiftAction (i->value->getRule(), elem, nextState));
-			}
+                state->addAction (new FsmState::ShiftAction (i->value->getRule(), elem, nextState));
+            }
 
-			// No reductions, no need for lookaheads.
-			List<FsmState::ReduceAction*> *reductions = state->getReduceActions();
-			if (reductions == nullptr) return state;
+            // No reductions, no need for lookaheads.
+            List<FsmState::ReduceAction*> *reductions = state->getReduceActions();
+            if (reductions == nullptr) return state;
 
-			// Single reduction without shifts, no need for lookaheads.
-			if (state->getShiftActions() == nullptr && reductions->length() == 1)
-				return state;
+            // Single reduction without shifts, no need for lookaheads.
+            if (state->getShiftActions() == nullptr && reductions->length() == 1)
+                return state;
 
-			// Single reduction with shifts.
-			if (state->getShiftActions() != nullptr && reductions->length() == 1)
-			{
-				if (section == Context::SectionType::LEXICON)
-					return state;
+            // Single reduction with shifts.
+            if (state->getShiftActions() != nullptr && reductions->length() == 1)
+            {
+                if (section == Context::SectionType::LEXICON)
+                    return state;
 
 printf ("NEED TO CHECK FOR STATE %u (ITEM SIGNATURE=%s)\n", state->getId(), root->getSignature()->c_str());
 root->dump(stdout);
 
-				Linkable<FsmState::ShiftAction*> *i;
-				auto tmp = reductions->first()->getFollow();
+                Linkable<FsmState::ShiftAction*> *i;
+                auto tmp = reductions->first()->getFollow();
 
-				for (i = state->getShiftActions()->head(); i; i = i->next())
-				{
-					if (tmp->contains (i->value->value))
-						break;
-				}
+                for (i = state->getShiftActions()->head(); i; i = i->next())
+                {
+                    if (tmp->contains (i->value->value))
+                        break;
+                }
 
-				// If no collision occurs, the single reduction will be a fallback when shifts fail.
-				if (i == nullptr || section == Context::SectionType::LEXICON)
-					return state;
+                // If no collision occurs, the single reduction will be a fallback when shifts fail.
+                if (i == nullptr || section == Context::SectionType::LEXICON)
+                    return state;
 
-				errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
-				return state;
-			}
+                errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
+                return state;
+            }
 
-			// Multiple reductions, lookaheads required.
+            // Multiple reductions, lookaheads required.
 
-			// Lexicon section does not support lookaheads. Only single reductions must be present.
-			if (section == Context::SectionType::LEXICON)
-			{
-				if (reductions->length() > 1) {
-					errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
-					//root->dump(stdout);
-				}
+            // Lexicon section does not support lookaheads. Only single reductions must be present.
+            if (section == Context::SectionType::LEXICON)
+            {
+                if (reductions->length() > 1) {
+                    errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
+                    //root->dump(stdout);
+                }
 
-				return state;
-			}
+                return state;
+            }
 
-			// Load initial follow set of all reductions.
-			for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i; i = i->next())
-				i->value->getFollow();
+            // Load initial follow set of all reductions.
+            for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i; i = i->next())
+                i->value->getFollow();
 
-			// Verify if a reduction follow symbol collides with a shift symbol.
-			bool err = false;
+            // Verify if a reduction follow symbol collides with a shift symbol.
+            bool err = false;
 
-			if (state->getShiftActions() != nullptr)
-			{
-				for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i && !err; i = i->next())
-				{
-					for (Linkable<FsmState::ShiftAction*> *j = state->getShiftActions()->head(); j; j = j->next())
-					{
-						if (i->value->getFollow()->contains (j->value->value))
-						{
-							err = true;
-							break;
-						}
-					}
-				}
-			}
+            if (state->getShiftActions() != nullptr)
+            {
+                for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i && !err; i = i->next())
+                {
+                    for (Linkable<FsmState::ShiftAction*> *j = state->getShiftActions()->head(); j; j = j->next())
+                    {
+                        if (i->value->getFollow()->contains (j->value->value))
+                        {
+                            err = true;
+                            break;
+                        }
+                    }
+                }
+            }
 
-			if (err)
-			{
-				errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
-				// root->dump (stdout);
-				return state;
-			}
+            if (err)
+            {
+                errmsg (nullptr, E_SHIFT_REDUCE, SECTION_CODE(section), state->getId());
+                // root->dump (stdout);
+                return state;
+            }
 
-			// Verify if a reduction follow symbol collides with another reduction.
-			err = false;
+            // Verify if a reduction follow symbol collides with another reduction.
+            err = false;
 
-			for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i && !err; i = i->next())
-			{
-				for (Linkable<FsmState::ReduceAction*> *j = i->next(); j && !err; j = j->next())
-				{
-					for (Linkable<Token*> *k = j->value->getFollow()->head(); k; k = k->next())
-					{
-						if (i->value->getFollow()->contains (k->value))
-						{
-							err = true;
-							break;
-						}
-					}
-				}
-			}
+            for (Linkable<FsmState::ReduceAction*> *i = reductions->head(); i && !err; i = i->next())
+            {
+                for (Linkable<FsmState::ReduceAction*> *j = i->next(); j && !err; j = j->next())
+                {
+                    for (Linkable<Token*> *k = j->value->getFollow()->head(); k; k = k->next())
+                    {
+                        if (i->value->getFollow()->contains (k->value))
+                        {
+                            err = true;
+                            break;
+                        }
+                    }
+                }
+            }
 
-			if (err)
-			{
-				errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
-				//root->dump(stdout);
-				return state;
-			}
+            if (err)
+            {
+                errmsg (nullptr, E_REDUCE_REDUCE, SECTION_CODE(section), state->getId());
+                //root->dump(stdout);
+                return state;
+            }
 
-			return state;
-		}
+            return state;
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Builds a sequence of states for a finite state machine (FSM) from a tree of itemsets.
-		 * 
-		 * @param context Global context. 
-		 * @param section Section ID.
-		 * @param root Initial itemset.
-		 * @return List<FsmState*>* 
-		 */
-		static List<FsmState*> *build (Context *context, Context::SectionType section, ItemSet *root)
-		{
-			List<FsmState*> *output = new List<FsmState*> ();
-			build (context, section, root, output);
-			return output;
-		}
-	};
+        /**
+         * @brief Builds a sequence of states for a finite state machine (FSM) from a tree of itemsets.
+         * 
+         * @param context Global context. 
+         * @param section Section ID.
+         * @param root Initial itemset.
+         * @return List<FsmState*>* 
+         */
+        static List<FsmState*> *build (Context *context, Context::SectionType section, ItemSet *root)
+        {
+            List<FsmState*> *output = new List<FsmState*> ();
+            build (context, section, root, output);
+            return output;
+        }
+    };
 
 };
 

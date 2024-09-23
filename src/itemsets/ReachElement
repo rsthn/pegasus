@@ -5,69 +5,69 @@
 
 namespace psxt
 {
-	/**
-	 * @brief Describes a single element (token) that can be reached through a path.
-	 */
-	class ReachElement : public ReachNode
-	{
-		protected:
+    /**
+     * @brief Describes a single element (token) that can be reached through a path.
+     */
+    class ReachElement : public ReachNode
+    {
+        protected:
 
-		/**
-		 * @brief Value of the element. If nullptr it is treated as an exit node.
-		 */
-		Token *value;
+        /**
+         * @brief Value of the element. If nullptr it is treated as an exit node.
+         */
+        Token *value;
 
-		/**
-		 * @brief Destroys the reach element.
-		 */
-		virtual ~ReachElement()
-		{
+        /**
+         * @brief Destroys the reach element.
+         */
+        virtual ~ReachElement()
+        {
 count1--;
-		}
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Constructs a reach element with the specified token.
-		 * @param value 
-		 */
-		ReachElement (Token *value) : ReachNode(ReachNode::Type::ELEMENT) {
-			this->value = value;
+        /**
+         * @brief Constructs a reach element with the specified token.
+         * @param value 
+         */
+        ReachElement (Token *value) : ReachNode(ReachNode::Type::ELEMENT) {
+            this->value = value;
 count1++;
-		}
+        }
 
-		/**
-		 * @brief Returns a boolean indicating if the element is an exit-node.
-		 * @return bool 
-		 */
-		bool isExit() {
-			return this->value == nullptr;
-		}
+        /**
+         * @brief Returns a boolean indicating if the element is an exit-node.
+         * @return bool 
+         */
+        bool isExit() {
+            return this->value == nullptr;
+        }
 
-		/**
-		 * @brief Returns the value of the element (Token object).
-		 * @return Token* 
-		 */
-		Token *getValue() {
-			return this->value;
-		}
+        /**
+         * @brief Returns the value of the element (Token object).
+         * @return Token* 
+         */
+        Token *getValue() {
+            return this->value;
+        }
 
-		/**
-		 * @brief Dumps the node to the specified output stream.
-		 * @param outputStream
-		 */
-		virtual void dump (FILE *outputStream)
-		{
-			if (this->value != nullptr)
-				fprintf (outputStream, "%s%s%s%s", 
-					value->getType() == Token::Type::END ? "ε" : value->getCstr(), 
-					value->getNValue() != nullptr ? "<" : "", 
-					value->getNValue() != nullptr ? value->getNValue()->getCstr() : "",
-					value->getNValue() != nullptr ? ">" : "");
-			else
-				fprintf (outputStream, "@");
-		}
-	};
+        /**
+         * @brief Dumps the node to the specified output stream.
+         * @param outputStream
+         */
+        virtual void dump (FILE *outputStream)
+        {
+            if (this->value != nullptr)
+                fprintf (outputStream, "%s%s%s%s", 
+                    value->getType() == Token::Type::END ? "ε" : value->getCstr(), 
+                    value->getNValue() != nullptr ? "<" : "", 
+                    value->getNValue() != nullptr ? value->getNValue()->getCstr() : "",
+                    value->getNValue() != nullptr ? ">" : "");
+            else
+                fprintf (outputStream, "@");
+        }
+    };
 };
 
 #endif

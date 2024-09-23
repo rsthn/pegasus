@@ -5,273 +5,273 @@
 
 namespace psxt
 {
-	using asr::utils::LList;
+    using asr::utils::LList;
 
-	// Forward declaration.
-	class NonTerminal;
+    // Forward declaration.
+    class NonTerminal;
 
-	/**
-	 * @brief Describes a production rule.
-	 */
-	class ProductionRule
-	{
-		public:
+    /**
+     * @brief Describes a production rule.
+     */
+    class ProductionRule
+    {
+        public:
 
-		/**
-		 * @brief Production rule associativity constants.
-		 */
-		enum Associativity {
-			NONE=0, LEFT=1, RIGHT=2
-		};
+        /**
+         * @brief Production rule associativity constants.
+         */
+        enum Associativity {
+            NONE=0, LEFT=1, RIGHT=2
+        };
 
-		enum Visibility {
-			DEFAULT=0, PUBLIC=1, PRIVATE=2
-		};
+        enum Visibility {
+            DEFAULT=0, PUBLIC=1, PRIVATE=2
+        };
 
-		protected:
+        protected:
 
-		/**
-		 * @brief Production rule ID.
-		 */
-		int id;
+        /**
+         * @brief Production rule ID.
+         */
+        int id;
 
-		/**
-		 * @brief Length of the production rule, also known as number of elements in the rule.
-		 */
-		int length;
+        /**
+         * @brief Length of the production rule, also known as number of elements in the rule.
+         */
+        int length;
 
-		/**
-		 * @brief Parent non-terminal where the production rule belongs.
-		 */
-		NonTerminal *nonterm;
+        /**
+         * @brief Parent non-terminal where the production rule belongs.
+         */
+        NonTerminal *nonterm;
 
-		/**
-		 * @brief List of elements of the production rules.
-		 */
-		LList<Token*> *elems;
+        /**
+         * @brief List of elements of the production rules.
+         */
+        LList<Token*> *elems;
 
-		/**
-		 * @brief Post-reduce action string related to the production rule.
-		 */
-		LString *action;
+        /**
+         * @brief Post-reduce action string related to the production rule.
+         */
+        LString *action;
 
-		/**
-		 * @brief Rule precedence level.
-		 */
-		int level;
+        /**
+         * @brief Rule precedence level.
+         */
+        int level;
 
-		/**
-		 * @brief Specifies the public visibility of the rule. This modifies the behavior when generating the finite state machine and the final code.
-		 */
-		Visibility visibility;
+        /**
+         * @brief Specifies the public visibility of the rule. This modifies the behavior when generating the finite state machine and the final code.
+         */
+        Visibility visibility;
 
-		/**
-		 * @brief Associativity of the rule.
-		 */
-		Associativity assoc;
+        /**
+         * @brief Associativity of the rule.
+         */
+        Associativity assoc;
 
-		public:
+        public:
 
-		/**
-		 * @brief Construct the production rule with the specified ID and belonging to the given non-terminal.
-		 * @param id ID of the production rule.
-		 * @param nonterm Parent non-terminal.
-		 */
-		ProductionRule (int id, NonTerminal *nonterm)
-		{
-			this->nonterm = nonterm;
+        /**
+         * @brief Construct the production rule with the specified ID and belonging to the given non-terminal.
+         * @param id ID of the production rule.
+         * @param nonterm Parent non-terminal.
+         */
+        ProductionRule (int id, NonTerminal *nonterm)
+        {
+            this->nonterm = nonterm;
 
-			this->elems = new LList<Token*> ();
-			this->id = id;
-			this->length = 0;
+            this->elems = new LList<Token*> ();
+            this->id = id;
+            this->length = 0;
 
-			this->level = 0;
-			this->visibility = Visibility::DEFAULT;
-			this->assoc = Associativity::NONE;
+            this->level = 0;
+            this->visibility = Visibility::DEFAULT;
+            this->assoc = Associativity::NONE;
 
-			this->action = nullptr;
-		}
+            this->action = nullptr;
+        }
 
-		/**
-		 * @brief Destroys the production rule including all elements and the related action string.
-		 */
-		virtual ~ProductionRule()
-		{
-			if (this->action != nullptr)
-				this->action->free();
+        /**
+         * @brief Destroys the production rule including all elements and the related action string.
+         */
+        virtual ~ProductionRule()
+        {
+            if (this->action != nullptr)
+                this->action->free();
 
-			while (this->elems->length())
-				delete this->elems->pop();
+            while (this->elems->length())
+                delete this->elems->pop();
 
-			delete this->elems;
-		}
+            delete this->elems;
+        }
 
-		/**
-		 * @brief Compares two production rules and returns true if both are equal.
-		 * @return bool
-		 */
-		bool equals (ProductionRule *value)
-		{
-			LList<Token*> *listA = value->elems;
-			LList<Token*> *listB = elems;
+        /**
+         * @brief Compares two production rules and returns true if both are equal.
+         * @return bool
+         */
+        bool equals (ProductionRule *value)
+        {
+            LList<Token*> *listA = value->elems;
+            LList<Token*> *listB = elems;
 
-			if (listA->length() != listB->length())
-				return false;
+            if (listA->length() != listB->length())
+                return false;
 
-			Linkable<Token*> *a = listA->head();
-			Linkable<Token*> *b = listB->head();
+            Linkable<Token*> *a = listA->head();
+            Linkable<Token*> *b = listB->head();
 
-			while (a != nullptr && b != nullptr)
-			{
-				if (!a->value->equals (b->value))
-					break;
+            while (a != nullptr && b != nullptr)
+            {
+                if (!a->value->equals (b->value))
+                    break;
 
-				a = a->next();
-				b = b->next();
-			}
+                a = a->next();
+                b = b->next();
+            }
 
-			return a == nullptr && b == nullptr ? true : false;
-		}
+            return a == nullptr && b == nullptr ? true : false;
+        }
 
-		/**
-		 * @brief Returns zero if the specified production rule is the same as this.
-		 * @param rule 
-		 * @return int 
-		 */
-		int compare (ProductionRule *rule) {
-			return equals(rule) ? 0 : 1;
-		}
+        /**
+         * @brief Returns zero if the specified production rule is the same as this.
+         * @param rule 
+         * @return int 
+         */
+        int compare (ProductionRule *rule) {
+            return equals(rule) ? 0 : 1;
+        }
 
-		/**
-		 * @brief Returns the rule's ID.
-		 * @return int 
-		 */
-		int getId() {
-			return this->id;
-		}
+        /**
+         * @brief Returns the rule's ID.
+         * @return int 
+         */
+        int getId() {
+            return this->id;
+        }
 
-		/**
-		 * @brief Returns the parent non-terminal.
-		 * @return NonTerminal* 
-		 */
-		NonTerminal *getNonTerminal() {
-			return this->nonterm;
-		}
+        /**
+         * @brief Returns the parent non-terminal.
+         * @return NonTerminal* 
+         */
+        NonTerminal *getNonTerminal() {
+            return this->nonterm;
+        }
 
-		/**
-		 * @brief Returns the rule's level of precedence.
-		 * @return int 
-		 */
-		int getLevel() {
-			return this->level;
-		}
+        /**
+         * @brief Returns the rule's level of precedence.
+         * @return int 
+         */
+        int getLevel() {
+            return this->level;
+        }
 
-		/**
-		 * @brief Returns the rule's visibility.
-		 * @return Visibility
-		 */
-		Visibility getVisibility() {
-			return this->visibility;
-		}
+        /**
+         * @brief Returns the rule's visibility.
+         * @return Visibility
+         */
+        Visibility getVisibility() {
+            return this->visibility;
+        }
 
-		/**
-		 * @brief Returns the rule's associativity.
-		 * @return Associativity
-		 */
-		Associativity getAssoc() {
-			return this->assoc;
-		}
+        /**
+         * @brief Returns the rule's associativity.
+         * @return Associativity
+         */
+        Associativity getAssoc() {
+            return this->assoc;
+        }
 
-		/**
-		 * @brief Returns the list of elements (tokens) in the rule.
-		 * @return LList<Token*>* 
-		 */
-		LList<Token*> *getElems() {
-			return this->elems;
-		}
+        /**
+         * @brief Returns the list of elements (tokens) in the rule.
+         * @return LList<Token*>* 
+         */
+        LList<Token*> *getElems() {
+            return this->elems;
+        }
 
-		/**
-		 * @brief Returns the rule's action string.
-		 * @return LString* 
-		 */
-		LString *getAction() {
-			return this->action;
-		}
+        /**
+         * @brief Returns the rule's action string.
+         * @return LString* 
+         */
+        LString *getAction() {
+            return this->action;
+        }
 
-		/**
-		 * @brief Returns the number of elements in the rule. This value is not equal to `getElems()->length()` because this only counts non NValue and non-EOF tokens.
-		 * @return int 
-		 */
-		int getLength() {
-			return this->length;
-		}
+        /**
+         * @brief Returns the number of elements in the rule. This value is not equal to `getElems()->length()` because this only counts non NValue and non-EOF tokens.
+         * @return int 
+         */
+        int getLength() {
+            return this->length;
+        }
 
-		/**
-		 * @brief Sets the rule's level of precedence.
-		 * @param level 
-		 */
-		void setLevel (int level) {
-			this->level = level;
-		}
+        /**
+         * @brief Sets the rule's level of precedence.
+         * @param level 
+         */
+        void setLevel (int level) {
+            this->level = level;
+        }
 
-		/**
-		 * @brief Sets the visibility of the rule.
-		 * @param value 
-		 */
-		void setVisibility (Visibility value) {
-			this->visibility = value;
-		}
+        /**
+         * @brief Sets the visibility of the rule.
+         * @param value 
+         */
+        void setVisibility (Visibility value) {
+            this->visibility = value;
+        }
 
-		/**
-		 * @brief Sets the rule's associativity.
-		 * @param value 
-		 */
-		void setAssoc (Associativity value) {
-			this->assoc = value;
-		}
+        /**
+         * @brief Sets the rule's associativity.
+         * @param value 
+         */
+        void setAssoc (Associativity value) {
+            this->assoc = value;
+        }
 
-		/**
-		 * @brief Sets the post-reduction action string.
-		 * @param action 
-		 */
-		void setAction (LString *action)
-		{
-			if (this->action != nullptr)
-				this->action->free();
+        /**
+         * @brief Sets the post-reduction action string.
+         * @param action 
+         */
+        void setAction (LString *action)
+        {
+            if (this->action != nullptr)
+                this->action->free();
 
-			this->action = action;
-		}
+            this->action = action;
+        }
 
-		/**
-		 * @brief Adds an element to the rule's element list.
-		 * @param elem 
-		 */
-		void addElem (Token *elem)
-		{
-			if (elem->getType() == Token::Type::NVALUE) {
-				this->elems->tail()->value->setNValue(elem);
-				return;
-			}
+        /**
+         * @brief Adds an element to the rule's element list.
+         * @param elem 
+         */
+        void addElem (Token *elem)
+        {
+            if (elem->getType() == Token::Type::NVALUE) {
+                this->elems->tail()->value->setNValue(elem);
+                return;
+            }
 
-			this->elems->push (elem);
-			this->length++;
-		}
+            this->elems->push (elem);
+            this->length++;
+        }
 
-		/**
-		 * @brief Returns the element at the specified index.
-		 * @param index 
-		 * @return Token* 
-		 */
-		Token *getElem (int index)
-		{
-			Linkable<Token*> *elem = this->elems->head();
+        /**
+         * @brief Returns the element at the specified index.
+         * @param index 
+         * @return Token* 
+         */
+        Token *getElem (int index)
+        {
+            Linkable<Token*> *elem = this->elems->head();
 
-			while (elem && index--)
-				elem = elem->next();
+            while (elem && index--)
+                elem = elem->next();
 
-			return elem ? elem->value : nullptr;
-		}
-	};
+            return elem ? elem->value : nullptr;
+        }
+    };
 };
 
 #endif

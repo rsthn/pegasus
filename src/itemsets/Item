@@ -3,276 +3,276 @@
 
 namespace psxt
 {
-	class ItemSet;
-	class Item;
+    class ItemSet;
+    class Item;
 
-	/**
-	 * @brief An item is an augmented production rule, that is, a production rule with an indicator (dot) to specify which is the element of the
-	 * production rule that is currently in focus.
-	 */
+    /**
+     * @brief An item is an augmented production rule, that is, a production rule with an indicator (dot) to specify which is the element of the
+     * production rule that is currently in focus.
+     */
 
-	class Item
-	{
-		protected:
+    class Item
+    {
+        protected:
 
-		/**
-		 * @brief Related production rule.
-		 */
-		ProductionRule *rule;
+        /**
+         * @brief Related production rule.
+         */
+        ProductionRule *rule;
 
-		/**
-		 * @brief Element node currently in focus.
-		 */
-		Linkable<Token*> *elem;
+        /**
+         * @brief Element node currently in focus.
+         */
+        Linkable<Token*> *elem;
 
-		/**
-		 * @brief Overriden focus element.
-		 */
-		Token *celem;
+        /**
+         * @brief Overriden focus element.
+         */
+        Token *celem;
 
-		/**
-		 * @brief Transition itemset.
-		 */
-		ItemSet *transition;
+        /**
+         * @brief Transition itemset.
+         */
+        ItemSet *transition;
 
-		/**
-		 * @brief Index of the element in focus.
-		 */
-		int index;
+        /**
+         * @brief Index of the element in focus.
+         */
+        int index;
 
-		/**
-		 * @brief Hash code of the item set.
-		 */
-		uint32_t hash;
+        /**
+         * @brief Hash code of the item set.
+         */
+        uint32_t hash;
 
-		public:
+        public:
 
-		/**
-		 * @brief Initializes the item and focuses in the first element of the production rule.
-		 * @param rule 
-		 */
-		Item (ProductionRule *rule) {
-			this->set (rule);
-		}
+        /**
+         * @brief Initializes the item and focuses in the first element of the production rule.
+         * @param rule 
+         */
+        Item (ProductionRule *rule) {
+            this->set (rule);
+        }
 
-		/**
-		 * @brief Constructs the item as a clone of the given one.
-		 * @param item 
-		 */
-		Item (Item *item)
-		{
-			this->rule = item->rule;
-			this->elem = item->elem;
-			this->index = item->index;
+        /**
+         * @brief Constructs the item as a clone of the given one.
+         * @param item 
+         */
+        Item (Item *item)
+        {
+            this->rule = item->rule;
+            this->elem = item->elem;
+            this->index = item->index;
 
-			this->celem = nullptr;
-			this->transition = nullptr;
-			this->updateHash();
-		}
+            this->celem = nullptr;
+            this->transition = nullptr;
+            this->updateHash();
+        }
 
-		/**
-		 * @brief Destroys the item.
-		 */
-		virtual ~Item()
-		{
-			if (celem) delete celem;
-		}
+        /**
+         * @brief Destroys the item.
+         */
+        virtual ~Item()
+        {
+            if (celem) delete celem;
+        }
 
-		/**
-		 * @brief Initializes the item from a production rule.
-		 * @param rule 
-		 */
-		void set (ProductionRule *rule)
-		{
-			this->rule = rule;
-			this->elem = rule->getElems()->head();
-			this->index = 0;
+        /**
+         * @brief Initializes the item from a production rule.
+         * @param rule 
+         */
+        void set (ProductionRule *rule)
+        {
+            this->rule = rule;
+            this->elem = rule->getElems()->head();
+            this->index = 0;
 
-			this->celem = nullptr;
-			this->transition = nullptr;
-			this->updateHash();
-		}
+            this->celem = nullptr;
+            this->transition = nullptr;
+            this->updateHash();
+        }
 
-		private:
+        private:
 
-		/**
-		 * @brief Updates the hash code of the item. It is built as (NonTerminalId << 20) | (RuleId << 10) | (Index).
-		 * Limiting resources to 4096 non-terminals, 1024 rules per non-terminal, and 1024 symbols per rule.
-		 */
-		void updateHash ()
-		{
-			hash = this->rule->getNonTerminal()->getId()*1024*1024;
-			hash |= this->rule->getId()*1024;
-			hash |= this->index;
-		}
+        /**
+         * @brief Updates the hash code of the item. It is built as (NonTerminalId << 20) | (RuleId << 10) | (Index).
+         * Limiting resources to 4096 non-terminals, 1024 rules per non-terminal, and 1024 symbols per rule.
+         */
+        void updateHash ()
+        {
+            hash = this->rule->getNonTerminal()->getId()*1024*1024;
+            hash |= this->rule->getId()*1024;
+            hash |= this->index;
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Overrides the focused element.
-		 */
-		void overrideElem (LString *value)
-		{
-			if (celem) delete celem;
+        /**
+         * @brief Overrides the focused element.
+         */
+        void overrideElem (LString *value)
+        {
+            if (celem) delete celem;
 
-			celem = new Token (elem != nullptr ? elem->value : nullptr, value);
-		}
+            celem = new Token (elem != nullptr ? elem->value : nullptr, value);
+        }
 
-		/**
-		 * @brief Returns the hash code of the item.
-		 * @return uint32_t 
-		 */
-		uint32_t getHash() const {
-			return this->hash;
-		}
+        /**
+         * @brief Returns the hash code of the item.
+         * @return uint32_t 
+         */
+        uint32_t getHash() const {
+            return this->hash;
+        }
 
-		/**
-		 * @brief Returns the transition itemset or `nullptr` if there is no transition. The transition is the next itemset to visit when the dot is moved forward.
-		 * @return ItemSet* 
-		 */
-		ItemSet *getTransition() const {
-			return this->transition;
-		}
+        /**
+         * @brief Returns the transition itemset or `nullptr` if there is no transition. The transition is the next itemset to visit when the dot is moved forward.
+         * @return ItemSet* 
+         */
+        ItemSet *getTransition() const {
+            return this->transition;
+        }
 
-		/**
-		 * @brief Sets the transition itemset. That is, the next itemset to visit when the dot is moved forward.
-		 * @param transition 
-		 */
-		void setTransition (ItemSet *transition) {
-			this->transition = transition;
-		}
+        /**
+         * @brief Sets the transition itemset. That is, the next itemset to visit when the dot is moved forward.
+         * @param transition 
+         */
+        void setTransition (ItemSet *transition) {
+            this->transition = transition;
+        }
 
-		/**
-		 * @brief Returns the related production rule.
-		 * @return ProductionRule* 
-		 */
-		ProductionRule *getRule() const {
-			return rule;
-		}
+        /**
+         * @brief Returns the related production rule.
+         * @return ProductionRule* 
+         */
+        ProductionRule *getRule() const {
+            return rule;
+        }
 
-		/**
-		 * @brief Returns the element in focus.
-		 * @return Token* 
-		 */
-		Token *getElem() const {
-			return celem != nullptr ? celem : (elem != nullptr ? elem->value : nullptr);
-		}
+        /**
+         * @brief Returns the element in focus.
+         * @return Token* 
+         */
+        Token *getElem() const {
+            return celem != nullptr ? celem : (elem != nullptr ? elem->value : nullptr);
+        }
 
-		/**
-		 * @brief Returns the node of the element in focus.
-		 * @return Linkable<Token*>* 
-		 */
-		Linkable<Token*> *getNode() const {
-			return celem != nullptr ? nullptr : elem;
-		}
+        /**
+         * @brief Returns the node of the element in focus.
+         * @return Linkable<Token*>* 
+         */
+        Linkable<Token*> *getNode() const {
+            return celem != nullptr ? nullptr : elem;
+        }
 
-		/**
-		 * @brief Returns the index of the element in focus.
-		 * @return int 
-		 */
-		int getIndex() const {
-			return index;
-		}
+        /**
+         * @brief Returns the index of the element in focus.
+         * @return int 
+         */
+        int getIndex() const {
+            return index;
+        }
 
-		/**
-		 * @brief Changes the transition to `newItemSet` if it was previously set to `oldItemSet`.
-		 * @param oldItemSet 
-		 * @param newItemSet
-		 */
-		void rewire (ItemSet *oldItemSet, ItemSet *newItemSet)
-		{
-			if (this->transition == oldItemSet)
-				this->transition = newItemSet;
-		}
+        /**
+         * @brief Changes the transition to `newItemSet` if it was previously set to `oldItemSet`.
+         * @param oldItemSet 
+         * @param newItemSet
+         */
+        void rewire (ItemSet *oldItemSet, ItemSet *newItemSet)
+        {
+            if (this->transition == oldItemSet)
+                this->transition = newItemSet;
+        }
 
-		/**
-		 * @brief Compares the items and returns true if they're equal.
-		 * @param item 
-		 * @return bool 
-		 */
-		bool equals (Item *item) const
-		{
-			if (!item) return false;
+        /**
+         * @brief Compares the items and returns true if they're equal.
+         * @param item 
+         * @return bool 
+         */
+        bool equals (Item *item) const
+        {
+            if (!item) return false;
 
-			if (item == this)
-				return true;
+            if (item == this)
+                return true;
 
-			if (item->rule != this->rule)
-				return false;
+            if (item->rule != this->rule)
+                return false;
 
-			if (item->index != this->index)
-				return false;
+            if (item->index != this->index)
+                return false;
 
-			if (item->getElem() == this->getElem())
-				return true;
+            if (item->getElem() == this->getElem())
+                return true;
 
-			if (item->getElem() == nullptr || this->getElem() == nullptr)
-				return false;
+            if (item->getElem() == nullptr || this->getElem() == nullptr)
+                return false;
 
-			return item->getElem()->equals (this->getElem(), true);
-		}
+            return item->getElem()->equals (this->getElem(), true);
+        }
 
-		/**
-		 * @brief Compares the items and returns 0 if they're equal.
-		 * @param item 
-		 * @return int 
-		 */
-		int compare (Item *item) const {
-			return equals(item) ? 0 : 1;
-		}
+        /**
+         * @brief Compares the items and returns 0 if they're equal.
+         * @param item 
+         * @return int 
+         */
+        int compare (Item *item) const {
+            return equals(item) ? 0 : 1;
+        }
 
-		/**
-		 * @brief Moves the focus to the next element in the production rule and updates the item's hash.
-		 * @return Item* 
-		 */
-		Item *moveNext()
-		{
-			if (celem) {
-				delete celem;
-				celem = nullptr;
-			}
+        /**
+         * @brief Moves the focus to the next element in the production rule and updates the item's hash.
+         * @return Item* 
+         */
+        Item *moveNext()
+        {
+            if (celem) {
+                delete celem;
+                celem = nullptr;
+            }
 
-			if (elem == nullptr)
-				return this;
+            if (elem == nullptr)
+                return this;
 
-			elem = elem->next();
-			index++;
+            elem = elem->next();
+            index++;
 
-			updateHash();
-			return this;
-		}
+            updateHash();
+            return this;
+        }
 
-		/**
-		 * @brief Dumps the item to the specified stream.
-		 * @param outputStream
-		 */
-		void dump (FILE *outputStream)
-		{
-			int j = 0;
+        /**
+         * @brief Dumps the item to the specified stream.
+         * @param outputStream
+         */
+        void dump (FILE *outputStream)
+        {
+            int j = 0;
 
-			for (Linkable<Token*> *i = this->rule->getElems()->head(); i; i = i->next())
-			{
-				if (index == j++)
-				{
-					fprintf(outputStream, "·");
+            for (Linkable<Token*> *i = this->rule->getElems()->head(); i; i = i->next())
+            {
+                if (index == j++)
+                {
+                    fprintf(outputStream, "·");
 
-					if (celem != nullptr) {
-						fprintf(outputStream, "%s ", celem->getCstr());
-						continue;
-					}
-				}
+                    if (celem != nullptr) {
+                        fprintf(outputStream, "%s ", celem->getCstr());
+                        continue;
+                    }
+                }
 
-				fprintf(outputStream, "%s%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
-					i->value->getNValue() != nullptr ? "<" : "",
-					i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : "",
-					i->value->getNValue() != nullptr ? ">" : ""
-				);
-			}
+                fprintf(outputStream, "%s%s%s%s ", i->value->getType() == Token::Type::END ? "ε" : i->value->getCstr(),
+                    i->value->getNValue() != nullptr ? "<" : "",
+                    i->value->getNValue() != nullptr ? i->value->getNValue()->getCstr() : "",
+                    i->value->getNValue() != nullptr ? ">" : ""
+                );
+            }
 
-			if (index >= rule->getElems()->length())
-				fprintf(outputStream, "·↓ %s#%u", rule->getNonTerminal()->getName()->c_str(), rule->getId());
-		}
-	};
+            if (index >= rule->getElems()->length())
+                fprintf(outputStream, "·↓ %s#%u", rule->getNonTerminal()->getName()->c_str(), rule->getId());
+        }
+    };
 };
 
 #endif

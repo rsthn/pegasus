@@ -5,92 +5,92 @@
 
 namespace psxt
 {
-	/**
-	 * @brief Abstract base class for nodes related to a reachsets.
-	 */
-	class ReachNode : public traits::no_delete
-	{
-		public:
+    /**
+     * @brief Abstract base class for nodes related to a reachsets.
+     */
+    class ReachNode : public traits::no_delete
+    {
+        public:
 
-		/**
-		 * @brief Type of reachset nodes.
-		 */
-		enum Type {
-			SET=0, PATH=1, ELEMENT=2
-		};
+        /**
+         * @brief Type of reachset nodes.
+         */
+        enum Type {
+            SET=0, PATH=1, ELEMENT=2
+        };
 
-		protected:
+        protected:
 
-		/**
-		 * @brief Number of references.
-		 */
-		int refCount;
+        /**
+         * @brief Number of references.
+         */
+        int refCount;
 
-		/**
-		 * @brief Type of the node.
-		 */
-		Type nodeType;
+        /**
+         * @brief Type of the node.
+         */
+        Type nodeType;
 
-		/**
-		 * @brief Constructs a node with the specified type.
-		 * @param type
-		 */
-		ReachNode (Type type)
-		{
-			this->nodeType = type;
-			this->refCount = 0;
+        /**
+         * @brief Constructs a node with the specified type.
+         * @param type
+         */
+        ReachNode (Type type)
+        {
+            this->nodeType = type;
+            this->refCount = 0;
 count0++;
-		}
+        }
 
-		/**
-		 * @brief Destroys the reachset node.
-		 */
-		virtual ~ReachNode() {
+        /**
+         * @brief Destroys the reachset node.
+         */
+        virtual ~ReachNode() {
 count0--;
-		}
+        }
 
-		public:
+        public:
 
-		/**
-		 * @brief Deletes the object if there are no more references to it.
-		 */
-		void destroy()
-		{
-			refCount--;
-			if (refCount < 0) printf("[WARN] Attempting to release already dead ReachNode (%d).\n", refCount);
-			if (refCount == 0) delete this;
-		}
+        /**
+         * @brief Deletes the object if there are no more references to it.
+         */
+        void destroy()
+        {
+            refCount--;
+            if (refCount < 0) printf("[WARN] Attempting to release already dead ReachNode (%d).\n", refCount);
+            if (refCount == 0) delete this;
+        }
 
-		/**
-		 * @brief Returns a reference to the object. Internally increases the reference count.
-		 * @return ReachNode* 
-		 */
-		ReachNode *getReference()
-		{
-			this->refCount++;
-			return this;
-		}
+        /**
+         * @brief Returns a reference to the object. Internally increases the reference count.
+         * @return ReachNode* 
+         */
+        ReachNode *getReference()
+        {
+            this->refCount++;
+            return this;
+        }
 
-		/**
-		 * @brief Returns the type of the node.
-		 * @return Type 
-		 */
-		Type getNodeType() {
-			return this->nodeType;
-		}
+        /**
+         * @brief Returns the type of the node.
+         * @return Type 
+         */
+        Type getNodeType() {
+            return this->nodeType;
+        }
 
-		/**
-		 * @brief Dumps the node to the specified output stream.
-		 * @param outputStream 
-		 */
-		virtual void dump (FILE *outputStream) = 0;
-	};
+        /**
+         * @brief Dumps the node to the specified output stream.
+         * @param outputStream 
+         */
+        virtual void dump (FILE *outputStream) = 0;
+    };
 
-	// Utility function to destroy a node.
-	void ReachNode__destroy (ReachNode *node)
-	{
-		node->destroy();
-	}
+    // Utility function to destroy a node.
+    void ReachNode__destroy (ReachNode *node)
+    {
+        node->destroy();
+    }
 
 };
 

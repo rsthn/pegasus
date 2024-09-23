@@ -2,8 +2,6 @@
 
 Pegasus is a modern, lightweight tool for creating parsers. It integrates both tokenization (breaking down input into meaningful symbols) and grammar analysis (defining the structure of valid inputs) in one package. Pegasus supports a variation of LALR(k) and LR(k) parsing, making it efficient for handling complex language structures while remaining easy to use and highly performant.
 
-<br/>
-
 # Syntax
 
 Lexical rules are defined in the `[lexicon]` section as production-rules with identifiers, strings, escape-sequence and charsets.
