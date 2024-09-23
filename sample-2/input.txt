@@ -1,2 +1,0 @@
-var info99 = 25 ;
-all works all right 8127639128763918236981236
